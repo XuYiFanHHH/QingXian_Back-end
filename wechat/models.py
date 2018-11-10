@@ -9,6 +9,7 @@ class User(models.Model):
     skey = models.CharField(max_length=256)
     contact_info = models.CharField(max_length=256)
     credit = models.IntegerField()
+    objects = models.Manager()
 
 # 二手商品表
 class Good(models.Model):
@@ -22,6 +23,7 @@ class Good(models.Model):
     release_time = models.DateTimeField(default=timezone.now)
     contact_msg = models.TextField()
     status = models.IntegerField()
+    objects = models.Manager()
 
 # 消息活动
 class Activity(models.Model):
@@ -35,6 +37,7 @@ class Activity(models.Model):
     release_time = models.DateTimeField(default=timezone.now)
     contact_msg = models.TextField()
     status = models.IntegerField()
+    objects = models.Manager()
 
 # 评论
 class Comment(models.Model):
@@ -45,6 +48,7 @@ class Comment(models.Model):
     activity_id = models.IntegerField()
     detail = models.TextField()
     release_time = models.DateTimeField(default=timezone.now)
+    objects = models.Manager()
 
 # 图片
 class Picture(models.Model):
@@ -55,17 +59,23 @@ class Picture(models.Model):
     activity_id = models.IntegerField()
     user_id = models.IntegerField()
     feedback_id = models.IntegerField()
+    objects = models.Manager()
 
+# 收藏
 class Collection(models.Model):
     user_id = models.IntegerField()
     category = models.IntegerField()
     good_id = models.IntegerField()
     activity_id = models.IntegerField()
+    objects = models.Manager()
 
+# 反馈
 class Feedback(models.Model):
     user_id = models.IntegerField()
     detail = models.TextField()
+    objects = models.Manager()
 
+# 提醒
 class Reminder(models.Model):
     reciever_id = models.IntegerField()
     category = models.IntegerField()
@@ -73,3 +83,4 @@ class Reminder(models.Model):
     title = models.TextField()
     detail = models.TextField()
     release_time = models.DateTimeField(default=timezone.now)
+    objects = models.Manager()

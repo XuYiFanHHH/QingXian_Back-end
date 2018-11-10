@@ -19,11 +19,11 @@ def admin_login(request):
         else:
             raise ValidateError("Login failed!")
         response['msg'] = "Login success!"
-        response['error_num'] = 0
+        response['error'] = 0
         response = JsonResponse(response)
     except Exception as e:
         response['msg'] = str(e)
-        response['error_num'] = 1
+        response['error'] = 1
         response = JsonResponse(response)
     return response
 
@@ -36,10 +36,10 @@ def admin_logout(request):
         else:
             logout(request)
             response['msg'] = "Logout success!"
-            response['error_num'] = 0
+            response['error'] = 0
             response = JsonResponse(response)
     except Exception as e:
         response['msg'] = str(e)
-        response['error_num'] = 1
+        response['error'] = 1
         response = JsonResponse(response)
     return response
