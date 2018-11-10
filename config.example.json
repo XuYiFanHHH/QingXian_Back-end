@@ -1,5 +1,4 @@
 {
-  "SECRET_KEY": "ThisIsARandomStringWithLength=50!-----------------",
   "DEBUG": true,
   "IGNORE_WECHAT_SIGNATURE": false,
   "WECHAT_TOKEN": "ThisIsAWeChatTokenWhichCanBeARandomString",

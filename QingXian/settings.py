@@ -23,16 +23,29 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'v@l0sic&((b-+_v^ezavw4a1s0bf2ds+hgies5cv(s&@ad-t#r'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
-
 try:
     CONFIGS = json.loads(open(os.path.join(BASE_DIR, 'configs.json')).read())
 except:
     CONFIGS = json.loads(open(os.path.join(BASE_DIR, 'configs.example.json')).read())
 
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = CONFIGS['DEBUG']
+
+# SECURITY WARNING: don't run with IGNORE_WECHAT_SIGNATURE turned on in production!
+IGNORE_WECHAT_SIGNATURE = CONFIGS['IGNORE_WECHAT_SIGNATURE']
+
+# SECURITY WARNING: keep the WeChat token, appid and secret used in production secret!
+WECHAT_TOKEN = CONFIGS['WECHAT_TOKEN']
+WECHAT_APPID = CONFIGS['WECHAT_APPID']
+WECHAT_SECRET = CONFIGS['WECHAT_SECRET']
+DB_NAME = CONFIGS["DB_NAME"]
+DB_USER = CONFIGS["DB_USER"]
+DB_PASS = CONFIGS["DB_PASS"]
+DB_HOST = CONFIGS["DB_HOST"]
+DB_PORT = CONFIGS["DB_PORT"]
+SITE_DOMAIN = CONFIGS["SITE_DOMAIN"]
+
+ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
@@ -51,7 +64,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -83,8 +96,12 @@ WSGI_APPLICATION = 'QingXian.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': DB_NAME,
+        'USER': DB_USER,
+        'PASSWORD': DB_PASS,
+        'HOST': DB_HOST,
+        'PORT': DB_PORT,
     }
 }
 
@@ -113,7 +130,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
