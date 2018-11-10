@@ -7,11 +7,12 @@ def user_login(request):
     response = {}
     try:
         code = request.POST["code"]
-        response['msg'] = "username or password error"
-        response['error_num'] = 1
+        response['msg'] = "login success"
+        response['error_num'] = 0
         response = JsonResponse(response)
     except Exception as e:
         response['msg'] = str(e)
         response['error_num'] = 1
         response = JsonResponse(response)
-    return response
+    finally:
+        return response
