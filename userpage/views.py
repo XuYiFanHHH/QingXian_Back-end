@@ -73,3 +73,79 @@ def userinfo_improvement(request):
         response = JsonResponse(response)
     finally:
         return response
+
+# 返回用户信用分
+# 完善用户信息,增加头像图片
+@require_http_methods(["POST"])
+def get_user_credit(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        result_list = User.objects.filter(skey=skey)
+
+        if len(result_list) > 0:
+            response['credit'] = result_list[0].credit
+            response['msg'] = "success"
+            response['error'] = 0
+        else:
+            response['credit'] = -1
+            response['msg'] = "skey invalid"
+            response['error'] = 1
+        response = JsonResponse(response)
+    except Exception as e:
+        response['credit'] = -1
+        response['msg'] = str(e)
+        response['error'] = 1
+        response = JsonResponse(response)
+    finally:
+        return response
+
+# 反馈给管理者(先保存到服务器)
+@require_http_methods(["POST"])
+def get_user_feedback(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        result_list = User.objects.filter(skey=skey)
+        if len(result_list) > 0:
+            user_id = result_list[0].id
+            detail = request.POST["info"]
+            feedback = Feedback(user_id=user_id, detail=detail)
+            feedback.save()
+            response['msg'] = "success"
+            response['error'] = 0
+        else:
+            response['msg'] = "skey invalid"
+            response['error'] = 1
+        response = JsonResponse(response)
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+        response = JsonResponse(response)
+    finally:
+        return response
+
+# 查看详情
+@require_http_methods(["POST"])
+def get_activity_or_good_detail(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        result_list = User.objects.filter(skey=skey)
+        if len(result_list) > 0:
+            user_id = result_list[0].id
+            detail = request.POST["info"]
+            feedback = Feedback(user_id=user_id, detail=detail)
+            feedback.save()
+            response['msg'] = "success"
+            response['error'] = 0
+        else:
+            response['msg'] = "skey invalid"
+            response['error'] = 1
+        response = JsonResponse(response)
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+        response = JsonResponse(response)
+    finally:
+        return response

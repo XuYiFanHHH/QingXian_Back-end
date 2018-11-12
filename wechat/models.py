@@ -67,12 +67,14 @@ class Collection(models.Model):
     category = models.IntegerField()
     good_id = models.IntegerField()
     activity_id = models.IntegerField()
+    release_time = models.DateTimeField(default=timezone.now)
     objects = models.Manager()
 
 # 反馈
 class Feedback(models.Model):
     user_id = models.IntegerField()
     detail = models.TextField()
+    release_time = models.DateTimeField(default=timezone.now)
     objects = models.Manager()
 
 # 提醒
