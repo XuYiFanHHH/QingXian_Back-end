@@ -40,7 +40,6 @@ def user_login(request):
         response = JsonResponse(response)
     except Exception as e:
         response['msg'] = str(e)
-        print("error: ", str(e))
         response['error'] = 1
         response['skey'] = ""
         response = JsonResponse(response)
@@ -56,17 +55,23 @@ def userinfo_improvement(request):
         result_list = User.objects.filter(skey=skey)
 
         if len(result_list) > 0:
-            result_list[0].usernam=request.POST['nickName']
+            result_list[0].username = request.POST['nickName']
+            picture = request.POST['avatarUrl']
             result_list[0].save()
-            obj = Picture(picture_url=request.POST['avatarUrl'],
-                          pic_count=1,
-                          category=2,
-                          good_id=-1,
-                          activity_id=-1,
-                          feedback_id=-1,
-                          user_id=result_list[0].id)
 
-            obj.save()
+            pic_list = Picture.objects.filter(user_id = result_list[0].id)
+            if len(pic_list) > 0:
+                pic_list[0].picture_url = picture
+                pic_list[0].save()
+            else:
+                obj = Picture(picture_url=picture,
+                              pic_count=1,
+                              category=2,
+                              good_id=-1,
+                              activity_id=-1,
+                              feedback_id=-1,
+                              user_id=result_list[0].id)
+                obj.save()
             response['msg'] = "update success"
             response['error'] = 0
         else:
