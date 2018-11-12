@@ -5,6 +5,7 @@ import requests
 from QingXian.settings import *
 from wechat.models import *
 import hashlib
+import base64
 
 # 用户登录接口
 @require_http_methods(["POST"])
@@ -12,7 +13,6 @@ def user_login(request):
     response = {}
     try:
         code = request.POST["code"]
-        print("code", code)
         url = 'https://api.weixin.qq.com/sns/jscode2session'
         params = {'appid': WECHAT_APPID, 'secret': WECHAT_SECRET, 'js_code': code, 'grant_type': 'authorization_code'}
         wechat_response = requests.get(url, params=params).json()
@@ -20,15 +20,19 @@ def user_login(request):
         session_key = wechat_response["session_key"]
         # 加密
         md5 = hashlib.md5()
-        md5.update(openid + session_key)
+        md5.update((openid + session_key).encode("utf8"))
         skey = md5.digest()
 
+        skey = base64.b64encode(skey).decode('utf-8')
+
         result_list = User.objects.filter(open_id=openid)
+
         if len(result_list) == 0:
             obj = User(open_id=openid, skey=skey, credit=100, username="", contact_info="")
             obj.save()
         else:
-            result_list[0].update(skey=skey)
+            result_list[0].skey = skey
+            result_list[0].save()
 
         response['skey'] = skey
         response['msg'] = "login success"
@@ -36,6 +40,7 @@ def user_login(request):
         response = JsonResponse(response)
     except Exception as e:
         response['msg'] = str(e)
+        print("error: ", str(e))
         response['error'] = 1
         response['skey'] = ""
         response = JsonResponse(response)
@@ -51,7 +56,8 @@ def userinfo_improvement(request):
         result_list = User.objects.filter(skey=skey)
 
         if len(result_list) > 0:
-            result_list[0].update(usernam=request.POST['nickName'])
+            result_list[0].usernam=request.POST['nickName']
+            result_list[0].save()
             obj = Picture(picture_url=request.POST['avatarUrl'],
                           pic_count=1,
                           category=2,
