@@ -88,7 +88,7 @@ def userinfo_improvement(request):
 # 返回用户信用分
 # 完善用户信息,增加头像图片
 @require_http_methods(["POST"])
-def get_user_credit(request):
+def get_user_info(request):
     response = {}
     try:
         skey = request.POST["skey"]
@@ -96,15 +96,27 @@ def get_user_credit(request):
 
         if len(result_list) > 0:
             response['credit'] = result_list[0].credit
-            response['msg'] = "success"
-            response['error'] = 0
+            response['nickName'] = result_list[0].username
+            pic_list = Picture.objects.filter(user_id=result_list[0].id)
+            if len(pic_list) > 0:
+                response["avatarUrl"] = pic_list[0].picture_url
+                response['msg'] = "success"
+                response['error'] = 0
+            else:
+                response["avatarUrl"] = ""
+                response['msg'] = "error: no avator"
+                response['error'] = 1
         else:
             response['credit'] = -1
+            response['nickName'] = ""
+            response["avatarUrl"] = ""
             response['msg'] = "skey invalid"
             response['error'] = 1
         response = JsonResponse(response)
     except Exception as e:
         response['credit'] = -1
+        response['nickName'] = ""
+        response["avatarUrl"] = ""
         response['msg'] = str(e)
         response['error'] = 1
         response = JsonResponse(response)
