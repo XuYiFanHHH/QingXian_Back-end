@@ -15,7 +15,6 @@ def admin_login(request):
         user = authenticate(username=username, password=password)
         if user is not None:
             login(request, user)
-            return
         else:
             raise ValidateError("Login failed!")
         response['msg'] = "Login success!"
@@ -29,7 +28,7 @@ def admin_login(request):
 
 @require_http_methods(["POST"])
 def admin_logout(request):
-    response = []
+    response = {}
     try:
         if not request.user.is_authenticated():
             raise ValidateError("admin-user not login!")
