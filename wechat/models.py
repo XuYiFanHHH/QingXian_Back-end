@@ -17,7 +17,9 @@ class Good(models.Model):
     title = models.CharField(max_length=256)
     detail = models.TextField()
     category = models.CharField(max_length=256)
+    # 出售为0，求购为1
     sale_or_require = models.IntegerField()
+    # -1为面议
     price = models.FloatField()
     submit_time = models.DateTimeField(default=timezone.now)
     release_time = models.DateTimeField(default=timezone.now)
@@ -28,11 +30,13 @@ class Good(models.Model):
 # 消息活动
 class Activity(models.Model):
     user_id = models.IntegerField()
+    # 有个标签位置
+    label = models.CharField(max_length=256, default="其它")
     title = models.CharField(max_length=256)
     detail = models.TextField()
     category = models.CharField(max_length=256)
     price_req = models.IntegerField()
-    price = models.FloatField()
+    price = models.CharField(max_length=256)
     submit_time = models.DateTimeField(default=timezone.now)
     release_time = models.DateTimeField(default=timezone.now)
     contact_msg = models.TextField()
