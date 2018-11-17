@@ -36,7 +36,6 @@ def user_login(request):
         else:
             result_list[0].skey = skey
             result_list[0].save()
-
         response['skey'] = skey
         response['msg'] = "login success"
         response['error'] = 0
@@ -85,8 +84,7 @@ def userinfo_improvement(request):
         response = JsonResponse(response)
         return response
 
-# 返回用户信用分
-# 完善用户信息,增加头像图片
+# 返回用户信用分,用户信息,头像图片
 @require_http_methods(["POST"])
 def get_user_info(request):
     response = {}
@@ -249,7 +247,7 @@ def get_valid_good_number(request):
         if len(user_list) > 0:
             response["number"] = Good.objects.filter(status = 1).count()
             response["msg"] = "success"
-            response["error"]
+            response["error"] = 0
         else:
             raise ValidateError("invalid skey, invalid user")
     except Exception as e:
@@ -269,7 +267,7 @@ def get_valid_info_number(request):
         if len(user_list) > 0:
             response["number"] = Activity.objects.filter(status = 1).count()
             response["msg"] = "success"
-            response["error"]
+            response["error"] = 0
         else:
             raise ValidateError("invalid skey, invalid user")
     except Exception as e:
@@ -287,7 +285,7 @@ def get_all_goods(request):
         skey = request.POST["skey"]
         user_list = User.objects.filter(skey=skey)
         if len(user_list) > 0:
-            page_id = request.POST["page"]
+            page_id = int(request.POST["page"])
             total_num = Good.objects.filter(status = 1).count()
             pages = math.ceil(total_num / 10)
             start_num = (page_id - 1) * 10
@@ -295,31 +293,32 @@ def get_all_goods(request):
             if end_num > total_num:
                 end_num = total_num
 
-            good_list = list(Good.objects.filter(status = 1).order_by('-release_time')[start_num:end_num])
+            good_list = Good.objects.filter(status = 1).order_by('-release_time')[start_num:end_num]
+            print(good_list)
             return_list = []
             for item in good_list:
                 info = {}
-                info["good_id"] = item["id"]
-                if item["sale_or_require"] == 0:
+                info["good_id"] = item.id
+                if int(item.sale_or_require) == 0:
                     info["label"] = "出售"
                 else:
                     info["label"] = "求购"
-                info["title"] = item["title"]
-                price = item["price"]
+                info["title"] = item.title
+                price = item.price
                 if price == -1:
                     info["price"] = "面议"
                 else:
                     info["price"] = str(price)
-                info["status"] = item["status"]
-                info["user_id"] = item["user_id"]
-                pic_list = list(Picture.objects.filter(good_id=item["id"]).order_by(id))
+                info["status"] = item.status
+                info["user_id"] = item.user_id
+                pic_list = Picture.objects.filter(good_id=item.id).order_by("id")
                 if len(pic_list) > 0:
-                    info["pic_url"] = pic_list[0]
+                    info["pic_url"] = pic_list[0].picture_url
                 else:
                     info["pic_url"] = ""
 
-                info["collect_num"] = Collection.objects.filter(good_id = item["id"]).count()
-                info["comment_num"] = Comment.objects.filter(good_id = item["id"]).count()
+                info["collect_num"] = Collection.objects.filter(good_id = item.id).count()
+                info["comment_num"] = Comment.objects.filter(good_id = item.id).count()
                 return_list.append(info)
             response["msg"] = "success"
             response["error"] = 0

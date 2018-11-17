@@ -31,7 +31,7 @@ def admin_login(request):
 def admin_logout(request):
     response = {}
     try:
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             raise ValidateError("admin-user not login!")
         else:
             logout(request)
@@ -49,10 +49,10 @@ def admin_logout(request):
 def get_all_goods(request):
     response = {}
     try:
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             raise ValidateError("admin-user not login!")
         else:
-            page_id = request.POST["page"]
+            page_id = int(request.POST["page"])
             total_num = Good.objects.all().count()
             pages = math.ceil(total_num / 10)
 
@@ -63,32 +63,36 @@ def get_all_goods(request):
             #     按page来取数据
             status = int(request.POST["status"])
             if status == -1:
-                good_list = list(Good.objects.order_by('-submit_time')[start_num:end_num])
+                good_list = Good.objects.order_by('-submit_time')[start_num:end_num]
             else:
-                good_list = list(Good.objects.filter(status = status)
-                                 .order_by('-submit_time')[start_num:end_num])
+                good_list = Good.objects.filter(status=status).order_by('-submit_time')[start_num:end_num]
+
             return_list = []
             for item in good_list:
                 info = {}
-                info["good_id"] = item["id"]
-                if item["sale_or_require"] == 0:
+                info["good_id"] = item.id
+                if int(item.sale_or_require) == 0:
                     info["label"] = "出售"
                 else:
                     info["label"] = "求购"
-                info["category"] = item["category"]
-                info["title"] = item["title"]
-                info["content"] = item["detail"]
-                info["contact_msg"] = item["contact_msg"]
-                info["price"] = item["price"]
-                info["status"] = item["status"]
+                info["category"] = item.category
+                info["title"] = item.title
+                info["content"] = item.detail
+                info["contact_msg"] = item.contact_msg
+                price = item.price
+                if price == -1:
+                    info["price"] = "面议"
+                else:
+                    info["price"] = str(price)
+                info["status"] = item.status
 
-                user_id = item["user_id"]
+                user_id = item.user_id
                 user = User.objects.get(id=user_id)
                 info["user_id"] = user_id
                 info["nick_name"] = user.username
                 info["contact_info"] = user.contact_info
 
-                pic_list = list(Picture.objects.filter(good_id = item["id"]))
+                pic_list = list(Picture.objects.filter(good_id=item.id))
                 info["pic_urls"] = pic_list
                 return_list.append(info)
 
@@ -99,7 +103,6 @@ def get_all_goods(request):
     except Exception as e:
         response['msg'] = str(e)
         response['error'] = 1
-        response = JsonResponse(response)
     finally:
         response = JsonResponse(response)
         return response
@@ -116,7 +119,7 @@ def good_check(request):
                 good.status = 1
                 good.release_time = timezone.now()
             else:
-                good.status = 0
+                good.status = 2
             good.save()
             response['msg'] = "success!"
             response['error'] = 0
