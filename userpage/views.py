@@ -174,9 +174,9 @@ def add_new_activity(request):
             user_id = user_list[0].id
             # 出售或者求购
             label = request.POST["label"]
-            if label != "课外兼职" and label != "婚恋交友" and label != "失物招领" and label != "休闲娱乐":
-                label = "其它"
             category = request.POST["category"]
+            if category != "课外兼职" and category != "婚恋交友" and category != "失物招领" and category != "休闲娱乐":
+                category = "其它"
             title = request.POST["title"]
             detail = request.POST["detail"]
             contact_msg = request.POST["notice"]
