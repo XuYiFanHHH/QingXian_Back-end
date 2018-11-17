@@ -6,6 +6,9 @@ from QingXian.settings import *
 from wechat.models import *
 import hashlib
 import base64
+import math
+import time
+import uuid
 from codex.baseError import *
 # 用户登录接口
 @require_http_methods(["POST"])
@@ -175,8 +178,6 @@ def add_new_activity(request):
             # 出售或者求购
             label = request.POST["label"]
             category = request.POST["category"]
-            if category != "课外兼职" and category != "婚恋交友" and category != "失物招领" and category != "休闲娱乐":
-                category = "其它"
             title = request.POST["title"]
             detail = request.POST["detail"]
             contact_msg = request.POST["notice"]
@@ -221,9 +222,9 @@ def get_user_feedback(request):
     response = {}
     try:
         skey = request.POST["skey"]
-        result_list = User.objects.filter(skey=skey)
-        if len(result_list) > 0:
-            user_id = result_list[0].id
+        user_list = User.objects.filter(skey=skey)
+        if len(user_list) > 0:
+            user_id = user_list[0].id
             detail = request.POST["info"]
             feedback = Feedback(user_id=user_id, detail=detail)
             feedback.save()
@@ -238,23 +239,124 @@ def get_user_feedback(request):
         response = JsonResponse(response)
         return response
 
-# 查看详情
+# 获取所有已上架二手商品交易总数
 @require_http_methods(["POST"])
-def get_activity_or_good_detail(request):
+def get_valid_good_number(request):
     response = {}
     try:
         skey = request.POST["skey"]
         user_list = User.objects.filter(skey=skey)
         if len(user_list) > 0:
-            response['msg'] = "success"
-            response['error'] = 0
+            response["number"] = Good.objects.filter(status = 1).count()
+            response["msg"] = "success"
+            response["error"]
         else:
             raise ValidateError("invalid skey, invalid user")
-
     except Exception as e:
         response['msg'] = str(e)
         response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
 
+# 获取所有已上架信息共享总数
+@require_http_methods(["POST"])
+def get_valid_info_number(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        user_list = User.objects.filter(skey=skey)
+        if len(user_list) > 0:
+            response["number"] = Activity.objects.filter(status = 1).count()
+            response["msg"] = "success"
+            response["error"]
+        else:
+            raise ValidateError("invalid skey, invalid user")
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+# 根据页数获取某一些商品
+@require_http_methods(["POST"])
+def get_all_goods(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        user_list = User.objects.filter(skey=skey)
+        if len(user_list) > 0:
+            page_id = request.POST["page"]
+            total_num = Good.objects.filter(status = 1).count()
+            pages = math.ceil(total_num / 10)
+            start_num = (page_id - 1) * 10
+            end_num = start_num + 10
+            if end_num > total_num:
+                end_num = total_num
+
+            good_list = list(Good.objects.filter(status = 1).order_by('-release_time')[start_num:end_num])
+            return_list = []
+            for item in good_list:
+                info = {}
+                info["good_id"] = item["id"]
+                if item["sale_or_require"] == 0:
+                    info["label"] = "出售"
+                else:
+                    info["label"] = "求购"
+                info["title"] = item["title"]
+                price = item["price"]
+                if price == -1:
+                    info["price"] = "面议"
+                else:
+                    info["price"] = str(price)
+                info["status"] = item["status"]
+                info["user_id"] = item["user_id"]
+                pic_list = list(Picture.objects.filter(good_id=item["id"]).order_by(id))
+                if len(pic_list) > 0:
+                    info["pic_url"] = pic_list[0]
+                else:
+                    info["pic_url"] = ""
+
+                info["collect_num"] = Collection.objects.filter(good_id = item["id"]).count()
+                info["comment_num"] = Comment.objects.filter(good_id = item["id"]).count()
+                return_list.append(info)
+            response["msg"] = "success"
+            response["error"] = 0
+        else:
+            raise ValidateError("invalid skey, invalid user")
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+# 上传图片
+@require_http_methods(["POST"])
+def upload_picture(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        user_list = User.objects.filter(skey=skey)
+        if len(user_list) > 0:
+            file = request.FILE['pic']
+            image_path = '%s/%s%s%s' % (MEDIA_SAVE_ROOT,
+                                        str(int(round(time.time() * 1000))),
+                                        str(uuid.uuid1()), file.name)
+            image_path = image_path.split(".")[0] + ".png"
+            with open(image_path, 'wb') as pic:
+                for c in file.chunks():
+                    pic.write(c)
+            print("picture OK", image_path)
+
+            response["msg"] = "success"
+            response["error"]
+        else:
+            raise ValidateError("invalid skey, invalid user")
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
     finally:
         response = JsonResponse(response)
         return response

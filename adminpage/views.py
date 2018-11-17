@@ -44,6 +44,7 @@ def admin_logout(request):
         response = JsonResponse(response)
         return response
 
+# 获取商品数据，-1:所有的，0：待审核，1：审核通过，已发布；2：已下架
 @require_http_methods(["POST"])
 def get_all_goods(request):
     response = {}
@@ -60,7 +61,12 @@ def get_all_goods(request):
             if end_num > total_num:
                 end_num = total_num
             #     按page来取数据
-            good_list = list(Good.objects.order_by('-submit_time')[start_num:end_num])
+            status = int(request.POST["status"])
+            if status == -1:
+                good_list = list(Good.objects.order_by('-submit_time')[start_num:end_num])
+            else:
+                good_list = list(Good.objects.filter(status = status)
+                                 .order_by('-submit_time')[start_num:end_num])
             return_list = []
             for item in good_list:
                 info = {}

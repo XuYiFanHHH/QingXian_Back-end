@@ -24,6 +24,7 @@ class Good(models.Model):
     submit_time = models.DateTimeField(default=timezone.now)
     release_time = models.DateTimeField(default=timezone.now)
     contact_msg = models.TextField()
+    # 发布状态（0：待审核，1：已审核，上架，2：下架）
     status = models.IntegerField()
     objects = models.Manager()
 
