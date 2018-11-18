@@ -12,5 +12,6 @@ urlpatterns = [
     path('trade/gettradenumber', get_valid_good_number),
     path('info/getinfonumber', get_valid_good_number),
     path('trade/getall', get_all_goods),
-    path('image/upload', upload_picture)
+    path('image/upload', upload_picture),
+    path('trade/collect', good_collection_changed)
 ]

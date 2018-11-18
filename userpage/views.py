@@ -289,6 +289,7 @@ def get_all_goods(request):
         skey = request.POST["skey"]
         user_list = User.objects.filter(skey=skey)
         if len(user_list) > 0:
+            user_id = user_list[0].id
             page_id = int(request.POST["currentPage"])
             currentTab = int(request.POST["currentTab"])
             selectIndex = int(request.POST["selectIndex"])
@@ -338,6 +339,11 @@ def get_all_goods(request):
                 for item in good_list:
                     info = {}
                     info["good_id"] = item.id
+                    select_result = Collection.objects.filter(user_id=user_id, good_id=item.id)
+                    if len(select_result) > 0:
+                        info["collect"] = 1
+                    else:
+                        info["collect"] = 0
                     if int(item.sale_or_require) == 0:
                         info["label"] = "出售"
                     else:
@@ -362,6 +368,40 @@ def get_all_goods(request):
             else:
                 return_list = []
             response["datalist"] = return_list
+            response["msg"] = "success"
+            response["error"] = 0
+        else:
+            raise ValidateError("invalid skey, invalid user")
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+# 二手商品收藏与取消收藏
+@require_http_methods(["POST"])
+def good_collection_changed(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        user_list = User.objects.filter(skey=skey)
+        if len(user_list) > 0:
+            user_id = user_list[0].id
+            good_id = int(request.POST["id"])
+
+            collect_result = Collection.objects.filter(user_id=user_id, good_id=good_id)
+            if len(collect_result) > 0:
+                collect_result.delete()
+                response["hasCollect"] = 0
+            else:
+                collection = Collection(user_id=user_id,
+                                        category=0,
+                                        good_id=good_id,
+                                        activity_id=-1,
+                                        )
+                collection.save()
+                response["hasCollect"] = 1
             response["msg"] = "success"
             response["error"] = 0
         else:
