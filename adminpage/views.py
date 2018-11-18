@@ -6,6 +6,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from codex.baseError import *
 from wechat.models import *
+from QingXian.settings import *
 import math
 @require_http_methods(["POST"])
 def admin_login(request):
@@ -54,14 +55,17 @@ def get_all_goods(request):
         else:
             page_id = int(request.POST["page"])
             status = int(request.POST["status"])
-            category = request.POST["category"]
-            keyword = request.POST["keyword"]
+            category = str(request.POST["category"])
+            keyword = str(request.POST["keyword"])
             if category != "全部":
                 good_list = Good.objects.filter(category=category)
+            else:
+                good_list = Good.objects.all()
             if status != -1:
                 good_list = good_list.filter(status=status)
 
             good_list = good_list.order_by('-submit_time')
+
             if keyword != "":
                 final_list=[]
                 for item in good_list:
@@ -69,6 +73,7 @@ def get_all_goods(request):
                         final_list.append(item)
             else:
                 final_list = good_list
+
             total_num = len(final_list)
             pages = math.ceil(total_num / 10)
 
@@ -78,8 +83,10 @@ def get_all_goods(request):
                 end_num = total_num
             #     按page来取数据
 
+            good_list = final_list[start_num:end_num]
+
             return_list = []
-            for item in final_list:
+            for item in good_list:
                 info = {}
                 info["good_id"] = item.id
                 if int(item.sale_or_require) == 0:
@@ -109,8 +116,17 @@ def get_all_goods(request):
                 info["nick_name"] = user.username
                 info["contact_info"] = user.contact_info
 
-                pic_list = list(Picture.objects.filter(good_id=item.id))
-                info["pic_urls"] = pic_list
+                pic_list = Picture.objects.filter(good_id=item.id)
+                pic_url_list = []
+                if len(pic_list) > 0:
+                    for pic in pic_list:
+                        pic_url = pic.picture_url
+                        if pic_url.startswith("/home/ubuntu"):
+                            pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
+                        if pic_url != "":
+                            pic_url_list.append(pic_url)
+
+                info["pic_urls"] = pic_url_list
                 return_list.append(info)
 
             response["datalist"] = return_list

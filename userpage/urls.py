@@ -14,4 +14,5 @@ urlpatterns = [
     path('trade/getall', get_all_goods),
     path('image/upload', upload_picture),
     path('trade/collect', good_collection_changed),
+    path('trade/search', get_goods_by_keyword)
 ]

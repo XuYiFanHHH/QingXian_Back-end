@@ -155,7 +155,11 @@ def add_new_trade(request):
                             status=0,
                             user_credit=user_credit)
             new_good.save()
-            pic_list = request.POST["pics"].split(",")
+            split_list = request.POST["pics"].split(",")
+            pic_list = []
+            for pic in split_list:
+                if pic:
+                    pic_list.append(pic)
             pic_count = 1
             for pic in pic_list:
                 picture = Picture(picture_url=pic,
@@ -218,7 +222,11 @@ def add_new_activity(request):
                                     status=0,
                                     user_credit=user_credit)
             new_activity.save()
-            pic_list = request.POST["pics"].split(",")
+            split_list = request.POST["pics"].split(",")
+            pic_list = []
+            for pic in split_list:
+                if pic:
+                    pic_list.append(pic)
             pic_count = 1
             for pic in pic_list:
                 picture = Picture(picture_url=pic,
@@ -384,10 +392,112 @@ def get_all_goods(request):
                     info["user_id"] = item.user_id
                     pic_list = Picture.objects.filter(good_id=item.id).order_by("id")
                     if len(pic_list) > 0:
-                        info["pic_url"] = pic_list[0].picture_url
+                        pic_url = str(pic_list[0].picture_url)
+                    if len(pic_list) == 0 or pic_url == "":
+                        pic_url = '%s/%s' % (PIC_SAVE_ROOT,"default_image.png")
+
+                    if pic_url.startswith("/home/ubuntu"):
+                        pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
+
+                    info["pic_url"] = pic_url
+                    info["user_credit"] = item.user_credit
+                    info["collect_num"] = Collection.objects.filter(good_id = item.id).count()
+                    info["comment_num"] = Comment.objects.filter(good_id = item.id).count()
+                    return_list.append(info)
+            else:
+                return_list = []
+            response["datalist"] = return_list
+            response["msg"] = "success"
+            response["error"] = 0
+        else:
+            raise ValidateError("invalid skey, invalid user")
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+# 根据页数与关键词获取某一些商品
+@require_http_methods(["POST"])
+def get_goods_by_keyword(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        user_list = User.objects.filter(skey=skey)
+        if len(user_list) > 0:
+            user_id = user_list[0].id
+            page_id = int(request.POST["currentPage"])
+            keyword = str(request.POST["keyword"])
+            # 0发售和求购1只看发售2只看求购
+            selectIndex = int(request.POST["selectIndex"])
+            # 0发布时间降序1发布时间升序2价格降序3价格升序4信用降序
+            sortIndex = int(request.POST["sortIndex"])
+            # 从已上架的商品中筛选
+            good_list = Good.objects.filter(status=1)
+            if selectIndex == 1:
+                good_list = good_list.filter(sale_or_require=0)
+            elif selectIndex == 2:
+                good_list = good_list.filter(sale_or_require=1)
+
+            if sortIndex == 0:
+                good_list = good_list.order_by('-release_time')
+            elif sortIndex == 1:
+                good_list = good_list.order_by('release_time')
+            elif sortIndex == 2:
+                good_list = good_list.order_by('-price')
+            elif sortIndex == 3:
+                good_list = good_list.order_by('price')
+            elif sortIndex == 4:
+                good_list = good_list.order_by('-user_credit')
+
+            if keyword != "":
+                final_list = []
+                for item in good_list:
+                    if item.title.find(keyword) != -1 or item.detail.find(keyword) != -1:
+                        final_list.append(item)
+            else:
+                final_list = good_list
+
+            total_num = final_list.count()
+            start_num = (page_id - 1) * 10
+            if start_num <= total_num:
+                end_num = start_num + 10
+                if end_num > total_num:
+                    end_num = total_num
+
+                good_list = final_list[start_num:end_num]
+                return_list = []
+                for item in good_list:
+                    info = {}
+                    info["good_id"] = item.id
+                    select_result = Collection.objects.filter(user_id=user_id, good_id=item.id)
+                    if len(select_result) > 0:
+                        info["collect"] = 1
                     else:
-                        image_path = '%s/%s' % (PIC_SAVE_ROOT,"default_image.png")
-                        info["pic_url"] = image_path
+                        info["collect"] = 0
+                    if int(item.sale_or_require) == 0:
+                        info["label"] = "出售"
+                    else:
+                        info["label"] = "求购"
+                    info["title"] = item.title
+                    price = item.price
+                    if price == -1:
+                        info["price"] = "面议"
+                    else:
+                        info["price"] = str(price)
+                    info["status"] = item.status
+                    info["user_id"] = item.user_id
+                    pic_list = Picture.objects.filter(good_id=item.id).order_by("id")
+                    if len(pic_list) > 0:
+                        pic_url = str(pic_list[0].picture_url)
+                    if len(pic_list) == 0 or pic_url == "":
+                        pic_url = '%s/%s' % (PIC_SAVE_ROOT,"default_image.png")
+
+                    if pic_url.startswith("/home/ubuntu"):
+                        pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
+
+                    info["pic_url"] = pic_url
                     info["user_credit"] = item.user_credit
                     info["collect_num"] = Collection.objects.filter(good_id = item.id).count()
                     info["comment_num"] = Comment.objects.filter(good_id = item.id).count()
