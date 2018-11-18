@@ -1,6 +1,6 @@
 # Create your views here.
 from django.views.decorators.http import require_http_methods
-from django.http import JsonResponse,HttpResponse
+from django.http import JsonResponse
 import requests
 from QingXian.settings import *
 from wechat.models import *
@@ -156,7 +156,7 @@ def add_new_trade(request):
                             user_credit=user_credit)
             new_good.save()
             pic_list = request.POST["pics"].split(",")
-            pic_count = 0
+            pic_count = 1
             for pic in pic_list:
                 picture = Picture(picture_url=pic,
                                   pic_count=pic_count,
@@ -167,6 +167,7 @@ def add_new_trade(request):
                                   feedback_id=-1
                                   )
                 picture.save()
+                pic_count += 1
             response['msg'] = "success"
             response['error'] = 0
         else:
@@ -218,7 +219,7 @@ def add_new_activity(request):
                                     user_credit=user_credit)
             new_activity.save()
             pic_list = request.POST["pics"].split(",")
-            pic_count = 0
+            pic_count = 1
             for pic in pic_list:
                 picture = Picture(picture_url=pic,
                                   pic_count=pic_count,
@@ -229,6 +230,7 @@ def add_new_activity(request):
                                   feedback_id=-1
                                   )
                 picture.save()
+                pic_count += 1
             response['msg'] = "success"
             response['error'] = 0
         else:
@@ -384,7 +386,8 @@ def get_all_goods(request):
                     if len(pic_list) > 0:
                         info["pic_url"] = pic_list[0].picture_url
                     else:
-                        info["pic_url"] = ""
+                        image_path = '%s/%s' % (PIC_SAVE_ROOT,"default_image.png")
+                        info["pic_url"] = image_path
                     info["user_credit"] = item.user_credit
                     info["collect_num"] = Collection.objects.filter(good_id = item.id).count()
                     info["comment_num"] = Comment.objects.filter(good_id = item.id).count()
@@ -466,16 +469,3 @@ def upload_picture(request):
     finally:
         response = JsonResponse(response)
         return response
-
-def get_file(fpath):
-    if os.path.isfile(fpath):
-        return open(fpath, 'rb').read()
-    else:
-        return None
-# 显示图片
-@require_http_methods(["GET"])
-def show_image(request):
-    pic_addr = str(request.path).replace("/userpage/showimage/", "/")
-    content = get_file(pic_addr)
-    if content is not None:
-        return HttpResponse(content, content_type="image/png")
