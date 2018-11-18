@@ -95,19 +95,39 @@ def get_user_info(request):
         if len(result_list) > 0:
             response['credit'] = result_list[0].credit
             response['nickName'] = result_list[0].username
-            pic_list = Picture.objects.filter(user_id=result_list[0].id)
-            if len(pic_list) > 0:
-                response["avatarUrl"] = pic_list[0].picture_url
-                response['msg'] = "success"
-                response['error'] = 0
-            else:
-                raise InputError("no avatar error")
+            avatar_url = str(Picture.objects.get(user_id=result_list[0].user_id).picture_url)
+            if avatar_url.startswith("/home/"):
+                avatar_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + avatar_url
+            response["avatarUrl"] = avatar_url
         else:
             raise ValidateError("invalid skey, invalid user")
     except Exception as e:
         response['credit'] = -1
         response['nickName'] = ""
         response["avatarUrl"] = ""
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+# 反馈给管理者(先保存到服务器)
+@require_http_methods(["POST"])
+def get_user_feedback(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        user_list = User.objects.filter(skey=skey)
+        if len(user_list) > 0:
+            user_id = user_list[0].id
+            detail = request.POST["info"]
+            feedback = Feedback(user_id=user_id, detail=detail)
+            feedback.save()
+            response['msg'] = "success"
+            response['error'] = 0
+        else:
+            raise ValidateError("invalid skey, invalid user")
+    except Exception as e:
         response['msg'] = str(e)
         response['error'] = 1
     finally:
@@ -252,29 +272,6 @@ def add_new_activity(request):
         response = JsonResponse(response)
         return response
 
-# 反馈给管理者(先保存到服务器)
-@require_http_methods(["POST"])
-def get_user_feedback(request):
-    response = {}
-    try:
-        skey = request.POST["skey"]
-        user_list = User.objects.filter(skey=skey)
-        if len(user_list) > 0:
-            user_id = user_list[0].id
-            detail = request.POST["info"]
-            feedback = Feedback(user_id=user_id, detail=detail)
-            feedback.save()
-            response['msg'] = "success"
-            response['error'] = 0
-        else:
-            raise ValidateError("invalid skey, invalid user")
-    except Exception as e:
-        response['msg'] = str(e)
-        response['error'] = 1
-    finally:
-        response = JsonResponse(response)
-        return response
-
 # 获取所有已上架二手商品交易总数
 @require_http_methods(["POST"])
 def get_valid_good_number(request):
@@ -389,7 +386,6 @@ def get_all_goods(request):
                     else:
                         price = format(price, '.2f')
                         info["price"] = str(price)
-                    info["status"] = item.status
                     info["user_id"] = item.user_id
                     pic_list = Picture.objects.filter(good_id=item.id).order_by("id")
                     if len(pic_list) > 0:
@@ -402,6 +398,98 @@ def get_all_goods(request):
 
                     info["pic_url"] = pic_url
                     info["user_credit"] = item.user_credit
+                    info["collect_num"] = Collection.objects.filter(good_id = item.id).count()
+                    info["comment_num"] = Comment.objects.filter(good_id = item.id).count()
+                    return_list.append(info)
+            else:
+                return_list = []
+            response["datalist"] = return_list
+            response["msg"] = "success"
+            response["error"] = 0
+        else:
+            raise ValidateError("invalid skey, invalid user")
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+# 根据页数获取某一些活动 （selectIndex未沟通）
+@require_http_methods(["POST"])
+def get_all_activities(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        user_list = User.objects.filter(skey=skey)
+        if len(user_list) > 0:
+            user_id = user_list[0].id
+            page_id = int(request.POST["currentPage"])
+            currentTab = int(request.POST["currentTab"])
+            selectIndex = int(request.POST["selectIndex"])
+            sortIndex = int(request.POST["sortIndex"])
+            # 从已上架的活动中筛选
+            activity_list = Activity.objects.filter(status=1)
+            if currentTab == 1:
+                activity_list = activity_list.filter(category="课外兼职")
+            elif currentTab == 2:
+                activity_list = activity_list.filter(category="婚恋交友")
+            elif currentTab == 3:
+                activity_list = activity_list.filter(category="失物招领")
+            elif currentTab == 4:
+                activity_list = activity_list.filter(category="休闲娱乐")
+            elif currentTab == 5:
+                activity_list = activity_list.filter(category="公共活动")
+            elif currentTab == 6:
+                activity_list = activity_list.filter(category="其它")
+
+            if selectIndex == 1:
+                activity_list = activity_list.filter(price_req=0)
+            elif selectIndex == 2:
+                activity_list = activity_list.filter(price_req=1)
+
+            if sortIndex == 0:
+                activity_list = activity_list.order_by('-release_time')
+            elif sortIndex == 1:
+                activity_list = activity_list.order_by('release_time')
+            elif sortIndex == 2:
+                activity_list = activity_list.order_by('-user_credit')
+
+            total_num = activity_list.count()
+            start_num = (page_id - 1) * 10
+            if start_num <= total_num:
+                end_num = start_num + 10
+                if end_num > total_num:
+                    end_num = total_num
+                activity_list = activity_list[start_num:end_num]
+                return_list = []
+                for item in activity_list:
+                    info = {}
+                    info["activity_id"] = item.id
+                    select_result = Collection.objects.filter(user_id=user_id, activity_id=item.id)
+                    if len(select_result) > 0:
+                        info["collect"] = 1
+                    else:
+                        info["collect"] = 0
+                    info["label"] = item.label
+                    info["title"] = item.title
+                    if item.price_req == 1:
+                        info["price"] = item.price
+                    else:
+                        info["price"] = "无价位要求"
+
+                    info["user_id"] = item.user_id
+                    info["user_credit"] = item.user_credit
+                    pic_list = Picture.objects.filter(activity_id=item.id).order_by("id")
+                    if len(pic_list) > 0:
+                        pic_url = str(pic_list[0].picture_url)
+                    if len(pic_list) == 0 or pic_url == "":
+                        pic_url = '%s/%s' % (PIC_SAVE_ROOT,"default_image.png")
+
+                    if pic_url.startswith("/home/ubuntu"):
+                        pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
+
+                    info["pic_url"] = pic_url
                     info["collect_num"] = Collection.objects.filter(good_id = item.id).count()
                     info["comment_num"] = Comment.objects.filter(good_id = item.id).count()
                     return_list.append(info)
@@ -488,7 +576,6 @@ def get_goods_by_keyword(request):
                     else:
                         price = format(price, '.2f')
                         info["price"] = str(price)
-                    info["status"] = item.status
                     info["user_id"] = item.user_id
                     pic_list = Picture.objects.filter(good_id=item.id).order_by("id")
                     if len(pic_list) > 0:
@@ -545,6 +632,305 @@ def good_collection_changed(request):
             response["error"] = 0
         else:
             raise ValidateError("invalid skey, invalid user")
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+# 二手商品添加评论
+@require_http_methods(["POST"])
+def add_good_comment(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        user_list = User.objects.filter(skey=skey)
+        if len(user_list) > 0:
+            user_id = user_list[0].id
+            good_id = int(request.POST["id"])
+            receiver_id = int(request.POST["receiver_id"])
+            detail = str(request.POST["detail"])
+            comment = Comment(reviewer_id=user_id,
+                              receiver_id=receiver_id,
+                              detail=detail,
+                              category=0,
+                              good_id=good_id,
+                              activity_id=-1
+                              )
+            comment.save()
+            response["msg"] = "success"
+            response["error"] = 0
+        else:
+            raise ValidateError("invalid skey, invalid user")
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+# 二手商品查看详情
+@require_http_methods(["POST"])
+def get_good_detail(request):
+    response = {}
+    try:
+        skey = str(request.POST["skey"])
+        user_list = User.objects.filter(skey=skey)
+        if len(user_list) > 0:
+            user_id = user_list[0].id
+            good_id = int(request.POST["id"])
+            good = Good.objects.get(id=good_id)
+            if good.sale_or_require == 0:
+                response["label"] = "出售"
+            else:
+                response["label"] = "求购"
+            response["category"] = good.category
+            response["title"] = good.title
+            response["detail"] = good.detail
+            price = good.price
+            if price == -1:
+                response["price"] = "面议"
+            else:
+                price = format(price, '.2f')
+                response["price"] = price
+            response["contact_msg"] = good.contact_msg
+
+            response["user_id"] = good.user_id
+            publisher = User.objects.get(id=good.user_id)
+            response["user_contact_info"] = publisher.contact_info
+            response["user_credit"] = publisher.credit
+            response["nickname"] = publisher.username
+
+            avatar_url = str(Picture.objects.get(user_id=good.user_id).picture_url)
+            if avatar_url.startswith("/home/"):
+                avatar_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + avatar_url
+            response["avatar"] = avatar_url
+            # 任务相关图片
+            pic_list = Picture.objects.filter(good_id=good_id)
+            pic_url_list = []
+            if len(pic_list) > 0:
+                for pic in pic_list:
+                    pic_url = pic.picture_url
+                    if pic_url.startswith("/home/ubuntu"):
+                        pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
+                    if pic_url != "":
+                        pic_url_list.append(pic_url)
+
+            if len(pic_url_list) == 0:
+                pic_url = '%s/%s' % (PIC_SAVE_ROOT,"default_image.png")
+                pic_url_list.append(str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url)
+            response["pic_list"] = pic_url_list
+
+            # 相关评论
+            comment_list = []
+            comments = Comment.objects.filter(good_id=good_id)
+            for comment in comments:
+                return_comment = {}
+                return_comment["id"] = comment.id
+                return_comment["reviewer_id"] = comment.reviewer_id
+                return_comment["reviewer_nickname"] = User.objects.get(id=comment.reviewer_id).username
+                return_comment["receiver_id"] = comment.receiver_id
+                return_comment["receiver_nickname"] = User.objects.get(id=comment.receiver_id).username
+                return_comment["detail"] = comment.detail
+                return_comment["time"] = str(comment.release_time)
+                comment_list.append(return_comment)
+
+            response["comment_list"] = comment_list
+            response["msg"] = "success"
+            response["error"] = 0
+        else:
+            raise ValidateError("invalid skey, invalid user")
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+# 查看自己已发布的全部任务
+@require_http_methods(["POST"])
+def get_all_task(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        user = User.objects.get(skey=skey)
+        category = int(request.POST["category"])
+        status = int(request.POST["status"])
+        page_id = int(request.POST["page"])
+        task_list = []
+        if category == 0:
+            all_task = Good.objects.filter(user_id=user.id)
+            if status != -1:
+                all_task = all_task.filter(status=status)
+
+            total_num = all_task.count()
+            start_num = (page_id - 1) * 10
+            if start_num <= total_num:
+                end_num = start_num + 10
+                if end_num > total_num:
+                    end_num = total_num
+                all_task = all_task.order_by("-submit_time")[start_num:end_num]
+            else:
+                all_task = []
+
+            for item in all_task:
+                task = {}
+                task["task_id"] = item.id
+                task["title"] = item.title
+                task["category"] = item.category
+                task["status"] = item.status
+                if item.sale_or_require == 0:
+                    task["label"] = "出售"
+                else:
+                    task["label"] = "求购"
+                price = item.price
+                if price == -1:
+                    task["price"] = "面议"
+                else:
+                    price = format(price, '.2f')
+                    task["price"] = price
+
+                pic_list = Picture.objects.filter(good_id=item.id)
+                if len(pic_list) > 0:
+                    pic_url = str(pic_list[0].picture_url)
+                if len(pic_list) == 0 or pic_url == "":
+                    pic_url = '%s/%s' % (PIC_SAVE_ROOT, "default_image.png")
+                if pic_url.startswith("/home/ubuntu"):
+                    pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
+                task["pic_url"] = pic_url
+                task["collect_num"] = Collection.objects.filter(good_id=item.id).count()
+                task["comment_num"] = Comment.objects.filter(good_id=item.id).count()
+                task_list.append(task)
+        elif category == 1:
+            all_task = Activity.objects.filter(user_id=user.id)
+            if status != -1:
+                all_task = all_task.filter(status=status)
+
+            total_num = all_task.count()
+            start_num = (page_id - 1) * 10
+            if start_num <= total_num:
+                end_num = start_num + 10
+                if end_num > total_num:
+                    end_num = total_num
+                all_task = all_task.order_by("-submit_time")[start_num:end_num]
+            else:
+                all_task = []
+
+            for item in all_task:
+                task = {}
+                task["task_id"] = item.id
+                task["title"] = item.title
+                task["category"] = item.category
+                task["label"] = item.label
+                task["status"] = item.status
+                if item.price_req == 1:
+                    task["price"] = item.price
+                else:
+                    task["price"] = "无价位要求"
+                pic_list = Picture.objects.filter(activity_id=item.id)
+                if len(pic_list) > 0:
+                    pic_url = str(pic_list[0].picture_url)
+                if len(pic_list) == 0 or pic_url == "":
+                    pic_url = '%s/%s' % (PIC_SAVE_ROOT, "default_image.png")
+
+                if pic_url.startswith("/home/ubuntu"):
+                    pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
+                task["pic_url"] = pic_url
+                task["collect_num"] = Collection.objects.filter(activity_id=item.id).count()
+                task["comment_num"] = Comment.objects.filter(activity_id=item.id).count()
+                task_list.append(task)
+        response["taskList"] = task_list
+        response['msg'] = "success！"
+        response['error'] = 0
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+# 查看自己的全部收藏
+@require_http_methods(["POST"])
+def get_all_collection(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        user = User.objects.get(skey=skey)
+        category = int(request.POST["category"])
+        page_id = int(request.POST["page"])
+        collections = Collection.objects.filter(user_id=user.id).filter(category=category).order_by("-release_time")
+        total_num = collections.count()
+        start_num = (page_id - 1) * 10
+        if start_num <= total_num:
+            end_num = start_num + 10
+            if end_num > total_num:
+                end_num = total_num
+            collections = collections[start_num:end_num]
+        else:
+            collections = []
+
+        task_list = []
+        if category == 0:
+            for item in collections:
+                good_id = item.good_id
+                item = Good.objects.get(id=good_id)
+                task = {}
+                task["task_id"] = item.id
+                task["title"] = item.title
+                task["category"] = item.category
+                task["status"] = item.status
+                if item.sale_or_require == 0:
+                    task["label"] = "出售"
+                else:
+                    task["label"] = "求购"
+                price = item.price
+                if price == -1:
+                    task["price"] = "面议"
+                else:
+                    price = format(price, '.2f')
+                    task["price"] = price
+
+                pic_list = Picture.objects.filter(good_id=item.id)
+                if len(pic_list) > 0:
+                    pic_url = str(pic_list[0].picture_url)
+                if len(pic_list) == 0 or pic_url == "":
+                    pic_url = '%s/%s' % (PIC_SAVE_ROOT, "default_image.png")
+                if pic_url.startswith("/home/ubuntu"):
+                    pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
+                task["pic_url"] = pic_url
+                task["collect_num"] = Collection.objects.filter(good_id=item.id).count()
+                task["comment_num"] = Comment.objects.filter(good_id=item.id).count()
+                task_list.append(task)
+        elif category == 1:
+            for item in collections:
+                activity_id = item.activity_id
+                item = Activity.objects.get(id=activity_id)
+                task = {}
+                task["task_id"] = item.id
+                task["title"] = item.title
+                task["category"] = item.category
+                task["label"] = item.label
+                task["status"] = item.status
+                if item.price_req == 1:
+                    task["price"] = item.price
+                else:
+                    task["price"] = "无价位要求"
+                pic_list = Picture.objects.filter(activity_id=item.id)
+                if len(pic_list) > 0:
+                    pic_url = str(pic_list[0].picture_url)
+                if len(pic_list) == 0 or pic_url == "":
+                    pic_url = '%s/%s' % (PIC_SAVE_ROOT, "default_image.png")
+
+                if pic_url.startswith("/home/ubuntu"):
+                    pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
+                task["pic_url"] = pic_url
+                task["collect_num"] = Collection.objects.filter(activity_id=item.id).count()
+                task["comment_num"] = Comment.objects.filter(activity_id=item.id).count()
+                task_list.append(task)
+        response["taskList"] = task_list
+        response['msg'] = "success！"
+        response['error'] = 0
     except Exception as e:
         response['msg'] = str(e)
         response['error'] = 1

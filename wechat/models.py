@@ -49,7 +49,7 @@ class Activity(models.Model):
 # 评论
 class Comment(models.Model):
     reviewer_id = models.IntegerField()
-    reciever_id = models.IntegerField()
+    receiver_id = models.IntegerField()
     category = models.IntegerField()
     good_id = models.IntegerField()
     activity_id = models.IntegerField()
