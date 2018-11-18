@@ -13,6 +13,7 @@ urlpatterns = [
 
     path('newtask/createtradetask', add_new_trade),
     path('newtask/createinfotask', add_new_activity),
+    path('image/upload', upload_picture),
 
     path('trade/gettradenumber', get_valid_good_number),
     path('trade/getall', get_all_goods),
@@ -20,8 +21,10 @@ urlpatterns = [
     path('trade/search', get_goods_by_keyword),
     path('trade/comment', add_good_comment),
     path('trade/detail', get_good_detail),
-    path('image/upload', upload_picture),
 
     path('info/getinfonumber', get_valid_good_number),
-    path('info/getall', get_all_activities)
+    path('info/getall', get_all_activities),
+    path('info/collect', activity_collection_changed),
+    path('info/search', get_activities_by_keyword),
+    path('info/comment', add_activity_comment),
 ]

@@ -76,15 +76,14 @@ def get_all_goods(request):
 
             total_num = len(final_list)
             pages = math.ceil(total_num / 10)
-
             start_num = (page_id - 1) * 10
-            end_num = start_num + 10
-            if end_num > total_num:
-                end_num = total_num
-            #     按page来取数据
-
-            good_list = final_list[start_num:end_num]
-
+            if start_num <= total_num:
+                end_num = start_num + 10
+                if end_num > total_num:
+                    end_num = total_num
+                good_list = final_list[start_num:end_num]
+            else:
+                good_list = []
             return_list = []
             for item in good_list:
                 info = {}
@@ -176,6 +175,143 @@ def good_change_category(request):
             good = Good.objects.get(id = request.POST["good_id"])
             good.category = request.POST["category"]
             good.save()
+            response['msg'] = "success!"
+            response['error'] = 0
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+# 获取活动数据，-1:所有的，0：待审核，1：审核通过，已发布；2：已下架
+@require_http_methods(["POST"])
+def get_all_activities(request):
+    response = {}
+    try:
+        if not request.user.is_authenticated:
+            raise ValidateError("admin-user not login!")
+        else:
+            page_id = int(request.POST["page"])
+            status = int(request.POST["status"])
+            category = str(request.POST["category"])
+            keyword = str(request.POST["keyword"])
+            if category != "全部":
+                activity_list = Activity.objects.filter(category=category)
+            else:
+                activity_list = Activity.objects.all()
+            if status != -1:
+                activity_list = activity_list.filter(status=status)
+
+            activity_list = activity_list.order_by('-submit_time')
+
+            if keyword != "":
+                final_list=[]
+                for item in activity_list:
+                    if item.title.find(keyword) != -1 or item.detail.find(keyword) != -1\
+                            or item.label.find(keyword) != -1:
+                        final_list.append(item)
+            else:
+                final_list = activity_list
+
+            total_num = len(final_list)
+            pages = math.ceil(total_num / 10)
+            start_num = (page_id - 1) * 10
+            if start_num <= total_num:
+                end_num = start_num + 10
+                if end_num > total_num:
+                    end_num = total_num
+                activity_list = final_list[start_num:end_num]
+            else:
+                activity_list = []
+            return_list = []
+            for item in activity_list:
+                info = {}
+                info["activity_id"] = item.id
+                info["label"] = item.label
+                info["category"] = item.category
+                info["title"] = item.title
+                info["content"] = item.detail
+                info["contact_msg"] = item.contact_msg
+
+                if item.price_req == 1:
+                    info["price"] = item.price
+                else:
+                    info["price"] = "无价位要求"
+
+                status = item.status
+                if status == 0:
+                    info["status"] = "待审核"
+                elif status == 1:
+                    info["status"] = "已审核发布"
+                else:
+                    info["status"] = "已下架"
+
+                user_id = item.user_id
+                user = User.objects.get(id=user_id)
+                info["user_id"] = user_id
+                info["nick_name"] = user.username
+                info["contact_info"] = user.contact_info
+
+                pic_list = Picture.objects.filter(activity_id=item.id)
+                pic_url_list = []
+                if len(pic_list) > 0:
+                    for pic in pic_list:
+                        pic_url = pic.picture_url
+                        if pic_url.startswith("/home/ubuntu"):
+                            pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
+                        if pic_url != "":
+                            pic_url_list.append(pic_url)
+
+                info["pic_urls"] = pic_url_list
+                return_list.append(info)
+
+            response["datalist"] = return_list
+            response["pages"] = pages
+            response['msg'] = "success!"
+            response['error'] = 0
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+# 上架或者下架
+@require_http_methods(["POST"])
+def activity_check(request):
+    response = {}
+    try:
+        if not request.user.is_authenticated:
+            raise ValidateError("admin-user not login!")
+        else:
+            activity = Activity.objects.get(id=request.POST["activity_id"])
+            if int(request.POST["agree"]) == 1:
+                activity.status = 1
+                activity.release_time = timezone.now()
+            else:
+                activity.status = 2
+            activity.save()
+            response['msg'] = "success!"
+            response['error'] = 0
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+# 修改活动分类
+@require_http_methods(["POST"])
+def activity_change_category(request):
+    response = {}
+    try:
+        if not request.user.is_authenticated:
+            raise ValidateError("admin-user not login!")
+        else:
+            activity = Activity.objects.get(id=request.POST["activity_id"])
+            activity.category = request.POST["category"]
+            activity.save()
             response['msg'] = "success!"
             response['error'] = 0
     except Exception as e:

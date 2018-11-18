@@ -251,7 +251,7 @@ def add_new_activity(request):
             for pic in pic_list:
                 picture = Picture(picture_url=pic,
                                   pic_count=pic_count,
-                                  category=0,
+                                  category=1,
                                   good_id=-1,
                                   activity_id=new_activity.id,
                                   user_id=-1,
@@ -490,8 +490,8 @@ def get_all_activities(request):
                         pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
 
                     info["pic_url"] = pic_url
-                    info["collect_num"] = Collection.objects.filter(good_id = item.id).count()
-                    info["comment_num"] = Comment.objects.filter(good_id = item.id).count()
+                    info["collect_num"] = Collection.objects.filter(activity_id=item.id).count()
+                    info["comment_num"] = Comment.objects.filter(activity_id=item.id).count()
                     return_list.append(info)
             else:
                 return_list = []
@@ -588,8 +588,100 @@ def get_goods_by_keyword(request):
 
                     info["pic_url"] = pic_url
                     info["user_credit"] = item.user_credit
-                    info["collect_num"] = Collection.objects.filter(good_id = item.id).count()
-                    info["comment_num"] = Comment.objects.filter(good_id = item.id).count()
+                    info["collect_num"] = Collection.objects.filter(good_id=item.id).count()
+                    info["comment_num"] = Comment.objects.filter(good_id=item.id).count()
+                    return_list.append(info)
+            else:
+                return_list = []
+            response["datalist"] = return_list
+            response["msg"] = "success"
+            response["error"] = 0
+        else:
+            raise ValidateError("invalid skey, invalid user")
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+# 根据页数与关键词获取某一些活动 （selectIndex未沟通）
+@require_http_methods(["POST"])
+def get_activities_by_keyword(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        user_list = User.objects.filter(skey=skey)
+        if len(user_list) > 0:
+            user_id = user_list[0].id
+            page_id = int(request.POST["currentPage"])
+            keyword = str(request.POST["keyword"])
+            # 0全部1只看无价格要求的2只看有价格要求
+            selectIndex = int(request.POST["selectIndex"])
+            # 0发布时间降序1发布时间升序2信用降序
+            sortIndex = int(request.POST["sortIndex"])
+            # 从已上架的商品中筛选
+            activity_list = Activity.objects.filter(status=1)
+            if selectIndex == 1:
+                activity_list = activity_list.filter(price_req=0)
+            elif selectIndex == 2:
+                activity_list = activity_list.filter(price_req=1)
+
+            if sortIndex == 0:
+                activity_list = activity_list.order_by('-release_time')
+            elif sortIndex == 1:
+                activity_list = activity_list.order_by('release_time')
+            elif sortIndex == 2:
+                activity_list = activity_list.order_by('-user_credit')
+
+            if keyword != "":
+                final_list = []
+                for item in activity_list:
+                    if item.title.find(keyword) != -1 or item.detail.find(keyword) != -1\
+                            or item.label.find(keyword) != -1:
+                        final_list.append(item)
+            else:
+                final_list = activity_list
+
+            total_num = len(final_list)
+            start_num = (page_id - 1) * 10
+            if start_num <= total_num:
+                end_num = start_num + 10
+                if end_num > total_num:
+                    end_num = total_num
+
+                activity_list = final_list[start_num:end_num]
+                return_list = []
+                for item in activity_list:
+                    info = {}
+                    info["activity_id"] = item.id
+                    select_result = Collection.objects.filter(user_id=user_id, activity_id=item.id)
+                    if len(select_result) > 0:
+                        info["collect"] = 1
+                    else:
+                        info["collect"] = 0
+                    info["label"] = item.label
+                    info["title"] = item.title
+                    if item.price_req == 1:
+                        info["price"] = item.price
+                    else:
+                        info["price"] = "无价位要求"
+
+                    info["user_id"] = item.user_id
+                    info["user_credit"] = item.user_credit
+
+                    pic_list = Picture.objects.filter(activity_id=item.id).order_by("id")
+                    if len(pic_list) > 0:
+                        pic_url = str(pic_list[0].picture_url)
+                    if len(pic_list) == 0 or pic_url == "":
+                        pic_url = '%s/%s' % (PIC_SAVE_ROOT,"default_image.png")
+
+                    if pic_url.startswith("/home/ubuntu"):
+                        pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
+
+                    info["pic_url"] = pic_url
+                    info["collect_num"] = Collection.objects.filter(activity_id=item.id).count()
+                    info["comment_num"] = Comment.objects.filter(activity_id=item.id).count()
                     return_list.append(info)
             else:
                 return_list = []
@@ -639,6 +731,40 @@ def good_collection_changed(request):
         response = JsonResponse(response)
         return response
 
+# 活动消息收藏与取消收藏
+@require_http_methods(["POST"])
+def activity_collection_changed(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        user_list = User.objects.filter(skey=skey)
+        if len(user_list) > 0:
+            user_id = user_list[0].id
+            activity_id = int(request.POST["id"])
+
+            collect_result = Collection.objects.filter(user_id=user_id, activity_id=activity_id)
+            if len(collect_result) > 0:
+                collect_result.delete()
+                response["hasCollect"] = 0
+            else:
+                collection = Collection(user_id=user_id,
+                                        category=1,
+                                        good_id=-1,
+                                        activity_id=activity_id,
+                                        )
+                collection.save()
+                response["hasCollect"] = 1
+            response["msg"] = "success"
+            response["error"] = 0
+        else:
+            raise ValidateError("invalid skey, invalid user")
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
 # 二手商品添加评论
 @require_http_methods(["POST"])
 def add_good_comment(request):
@@ -657,6 +783,37 @@ def add_good_comment(request):
                               category=0,
                               good_id=good_id,
                               activity_id=-1
+                              )
+            comment.save()
+            response["msg"] = "success"
+            response["error"] = 0
+        else:
+            raise ValidateError("invalid skey, invalid user")
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+# 活动信息添加评论
+@require_http_methods(["POST"])
+def add_activity_comment(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        user_list = User.objects.filter(skey=skey)
+        if len(user_list) > 0:
+            user_id = user_list[0].id
+            activity_id = int(request.POST["id"])
+            receiver_id = int(request.POST["receiver_id"])
+            detail = str(request.POST["detail"])
+            comment = Comment(reviewer_id=user_id,
+                              receiver_id=receiver_id,
+                              detail=detail,
+                              category=1,
+                              good_id=-1,
+                              activity_id=activity_id
                               )
             comment.save()
             response["msg"] = "success"
