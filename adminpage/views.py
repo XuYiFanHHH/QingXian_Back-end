@@ -101,6 +101,7 @@ def get_all_goods(request):
                 if price == -1:
                     info["price"] = "面议"
                 else:
+                    price = float('%.2f' % price)
                     info["price"] = str(price)
                 status = item.status
                 if status == 0:

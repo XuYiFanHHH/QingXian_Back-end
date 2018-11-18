@@ -387,6 +387,7 @@ def get_all_goods(request):
                     if price == -1:
                         info["price"] = "面议"
                     else:
+                        price = float('%.2f' % price)
                         info["price"] = str(price)
                     info["status"] = item.status
                     info["user_id"] = item.user_id
@@ -459,7 +460,7 @@ def get_goods_by_keyword(request):
             else:
                 final_list = good_list
 
-            total_num = final_list.count()
+            total_num = len(final_list)
             start_num = (page_id - 1) * 10
             if start_num <= total_num:
                 end_num = start_num + 10
@@ -485,6 +486,7 @@ def get_goods_by_keyword(request):
                     if price == -1:
                         info["price"] = "面议"
                     else:
+                        price = float('%.2f' % price)
                         info["price"] = str(price)
                     info["status"] = item.status
                     info["user_id"] = item.user_id
