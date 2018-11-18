@@ -155,6 +155,18 @@ def add_new_trade(request):
                             status=0,
                             user_credit=user_credit)
             new_good.save()
+            pic_list = request.POST["pics"].split(",")
+            pic_count = 0
+            for pic in pic_list:
+                picture = Picture(picture_url=pic,
+                                  pic_count=pic_count,
+                                  category=0,
+                                  good_id=new_good.id,
+                                  activity_id=-1,
+                                  user_id=-1,
+                                  feedback_id=-1
+                                  )
+                picture.save()
             response['msg'] = "success"
             response['error'] = 0
         else:
@@ -205,6 +217,18 @@ def add_new_activity(request):
                                     status=0,
                                     user_credit=user_credit)
             new_activity.save()
+            pic_list = request.POST["pics"].split(",")
+            pic_count = 0
+            for pic in pic_list:
+                picture = Picture(picture_url=pic,
+                                  pic_count=pic_count,
+                                  category=0,
+                                  good_id=-1,
+                                  activity_id=new_activity.id,
+                                  user_id=-1,
+                                  feedback_id=-1
+                                  )
+                picture.save()
             response['msg'] = "success"
             response['error'] = 0
         else:

@@ -20,6 +20,7 @@ class StaticFileView(View):
             return None
 
     def do_dispatch(self, *args, **kwargs):
+        print("into dispatch", self.request.path)
         rpath = self.request.path.replace('..', '.').strip('/')
         if '__' in rpath:
             raise Http404('Could not access private static file: ' + self.request.path)
