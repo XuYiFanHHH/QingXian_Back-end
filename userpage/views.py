@@ -123,6 +123,7 @@ def add_new_trade(request):
         user_list = User.objects.filter(skey=skey)
         if len(user_list) > 0:
             user_id = user_list[0].id
+            user_credit = user_list[0].credit
             # 出售或者求购
             label = request.POST["label"]
             # 出售为0
@@ -151,7 +152,8 @@ def add_new_trade(request):
                             sale_or_require=sale_or_require,
                             price=price,
                             contact_msg=contact_msg,
-                            status=0)
+                            status=0,
+                            user_credit=user_credit)
             new_good.save()
             response['msg'] = "success"
             response['error'] = 0
@@ -173,6 +175,7 @@ def add_new_activity(request):
         user_list = User.objects.filter(skey=skey)
         if len(user_list) > 0:
             user_id = user_list[0].id
+            user_credit = user_list[0].credit
             # 出售或者求购
             label = request.POST["label"]
             category = request.POST["category"]
@@ -199,7 +202,8 @@ def add_new_activity(request):
                                     price_req=price_req,
                                     price=price,
                                     contact_msg=contact_msg,
-                                    status=0)
+                                    status=0,
+                                    user_credit=user_credit)
             new_activity.save()
             response['msg'] = "success"
             response['error'] = 0
@@ -285,41 +289,79 @@ def get_all_goods(request):
         skey = request.POST["skey"]
         user_list = User.objects.filter(skey=skey)
         if len(user_list) > 0:
-            page_id = int(request.POST["page"])
-            total_num = Good.objects.filter(status = 1).count()
-            pages = math.ceil(total_num / 10)
+            page_id = int(request.POST["currentPage"])
+            currentTab = int(request.POST["currentTab"])
+            selectIndex = int(request.POST["selectIndex"])
+            sortIndex = int(request.POST["sortIndex"])
+            # 从已上架的商品中筛选
+            good_list = Good.objects.filter(status = 1)
+            if currentTab == 1:
+                good_list = good_list.filter(category="学习")
+            elif currentTab == 2:
+                good_list = good_list.filter(category="日用")
+            elif currentTab == 3:
+                good_list = good_list.filter(category="服饰")
+            elif currentTab == 4:
+                good_list = good_list.filter(category="运动")
+            elif currentTab == 5:
+                good_list = good_list.filter(category="电子")
+            elif currentTab == 6:
+                good_list = good_list.filter(category="美妆")
+            elif currentTab == 7:
+                good_list = good_list.filter(category="其它")
+
+            if selectIndex == 1:
+                good_list = good_list.filter(sale_or_require=0)
+            elif selectIndex == 2:
+                good_list = good_list.filter(sale_or_require=1)
+
+            if sortIndex == 0:
+                good_list = good_list.order_by('-release_time')
+            elif sortIndex == 1:
+                good_list = good_list.order_by('release_time')
+            elif sortIndex == 2:
+                good_list = good_list.order_by('-price')
+            elif sortIndex == 3:
+                good_list = good_list.order_by('price')
+            elif sortIndex == 4:
+                good_list = good_list.order_by('-user_credit')
+
+            total_num = good_list.count()
             start_num = (page_id - 1) * 10
-            end_num = start_num + 10
-            if end_num > total_num:
-                end_num = total_num
+            if start_num <= total_num:
+                end_num = start_num + 10
+                if end_num > total_num:
+                    end_num = total_num
 
-            good_list = Good.objects.filter(status = 1).order_by('-release_time')[start_num:end_num]
-            print(good_list)
-            return_list = []
-            for item in good_list:
-                info = {}
-                info["good_id"] = item.id
-                if int(item.sale_or_require) == 0:
-                    info["label"] = "出售"
-                else:
-                    info["label"] = "求购"
-                info["title"] = item.title
-                price = item.price
-                if price == -1:
-                    info["price"] = "面议"
-                else:
-                    info["price"] = str(price)
-                info["status"] = item.status
-                info["user_id"] = item.user_id
-                pic_list = Picture.objects.filter(good_id=item.id).order_by("id")
-                if len(pic_list) > 0:
-                    info["pic_url"] = pic_list[0].picture_url
-                else:
-                    info["pic_url"] = ""
-
-                info["collect_num"] = Collection.objects.filter(good_id = item.id).count()
-                info["comment_num"] = Comment.objects.filter(good_id = item.id).count()
-                return_list.append(info)
+                good_list = good_list[start_num:end_num]
+                return_list = []
+                for item in good_list:
+                    info = {}
+                    info["good_id"] = item.id
+                    if int(item.sale_or_require) == 0:
+                        info["label"] = "出售"
+                    else:
+                        info["label"] = "求购"
+                    info["title"] = item.title
+                    price = item.price
+                    if price == -1:
+                        info["price"] = "面议"
+                    else:
+                        info["price"] = str(price)
+                    info["status"] = item.status
+                    info["user_id"] = item.user_id
+                    pic_list = Picture.objects.filter(good_id=item.id).order_by("id")
+                    if len(pic_list) > 0:
+                        info["pic_url"] = pic_list[0].picture_url
+                    else:
+                        info["pic_url"] = ""
+                    info["user_credit"] = item.user_credit
+                    info["collect_num"] = Collection.objects.filter(good_id = item.id).count()
+                    info["comment_num"] = Comment.objects.filter(good_id = item.id).count()
+                    return_list.append(info)
+            else:
+                return_list = []
+            response["datalist"] = return_list
             response["msg"] = "success"
             response["error"] = 0
         else:
@@ -337,20 +379,21 @@ def upload_picture(request):
     response = {}
     try:
         skey = request.POST["skey"]
+        index = int(request.POST["index"])
         user_list = User.objects.filter(skey=skey)
         if len(user_list) > 0:
-            file = request.FILE['pic']
-            image_path = '%s/%s%s%s' % (MEDIA_SAVE_ROOT,
+            file = request.FILES.get('pic')
+            image_path = '%s/%s%s%s' % (PIC_SAVE_ROOT,
                                         str(int(round(time.time() * 1000))),
                                         str(uuid.uuid1()), file.name)
             image_path = image_path.split(".")[0] + ".png"
             with open(image_path, 'wb') as pic:
                 for c in file.chunks():
                     pic.write(c)
-            print("picture OK", image_path)
-
+            response["pic_url"] = image_path
+            response["index"] = index
             response["msg"] = "success"
-            response["error"]
+            response["error"] = 0
         else:
             raise ValidateError("invalid skey, invalid user")
     except Exception as e:

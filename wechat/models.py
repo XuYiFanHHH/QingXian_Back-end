@@ -26,6 +26,7 @@ class Good(models.Model):
     contact_msg = models.TextField()
     # 发布状态（0：待审核，1：已审核，上架，2：下架）
     status = models.IntegerField()
+    user_credit = models.IntegerField(default=100)
     objects = models.Manager()
 
 # 消息活动
@@ -42,6 +43,7 @@ class Activity(models.Model):
     release_time = models.DateTimeField(default=timezone.now)
     contact_msg = models.TextField()
     status = models.IntegerField()
+    user_credit = models.IntegerField(default=100)
     objects = models.Manager()
 
 # 评论

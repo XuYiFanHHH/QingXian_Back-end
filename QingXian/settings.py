@@ -144,4 +144,4 @@ USE_TZ = False
 
 STATIC_URL = '/static/'
 
-MEDIA_SAVE_ROOT = os.path.join(BASE_DIR, "static/picture")
+PIC_SAVE_ROOT = os.path.join(BASE_DIR, "media/picture")

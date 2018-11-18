@@ -53,7 +53,23 @@ def get_all_goods(request):
             raise ValidateError("admin-user not login!")
         else:
             page_id = int(request.POST["page"])
-            total_num = Good.objects.all().count()
+            status = int(request.POST["status"])
+            category = request.POST["category"]
+            keyword = request.POST["keyword"]
+            if category != "全部":
+                good_list = Good.objects.filter(category=category)
+            if status != -1:
+                good_list = good_list.filter(status=status)
+
+            good_list = good_list.order_by('-submit_time')
+            if keyword != "":
+                final_list=[]
+                for item in good_list:
+                    if item.title.find(keyword) != -1 or item.detail.find(keyword) != -1:
+                        final_list.append(item)
+            else:
+                final_list = good_list
+            total_num = len(final_list)
             pages = math.ceil(total_num / 10)
 
             start_num = (page_id - 1) * 10
@@ -61,14 +77,9 @@ def get_all_goods(request):
             if end_num > total_num:
                 end_num = total_num
             #     按page来取数据
-            status = int(request.POST["status"])
-            if status == -1:
-                good_list = Good.objects.order_by('-submit_time')[start_num:end_num]
-            else:
-                good_list = Good.objects.filter(status=status).order_by('-submit_time')[start_num:end_num]
 
             return_list = []
-            for item in good_list:
+            for item in final_list:
                 info = {}
                 info["good_id"] = item.id
                 if int(item.sale_or_require) == 0:
@@ -84,7 +95,13 @@ def get_all_goods(request):
                     info["price"] = "面议"
                 else:
                     info["price"] = str(price)
-                info["status"] = item.status
+                status = item.status
+                if status == 0:
+                    info["status"] = "待审核"
+                elif status == 1:
+                    info["status"] = "已审核发布"
+                else:
+                    info["status"] = "已下架"
 
                 user_id = item.user_id
                 user = User.objects.get(id=user_id)
@@ -107,19 +124,40 @@ def get_all_goods(request):
         response = JsonResponse(response)
         return response
 
+# 上架或者下架
 @require_http_methods(["POST"])
 def good_check(request):
     response = {}
     try:
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             raise ValidateError("admin-user not login!")
         else:
             good = Good.objects.get(id = request.POST["good_id"])
-            if int(request["agree"]) == 1:
+            if int(request.POST["agree"]) == 1:
                 good.status = 1
                 good.release_time = timezone.now()
             else:
                 good.status = 2
+            good.save()
+            response['msg'] = "success!"
+            response['error'] = 0
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+# 修改商品分类
+@require_http_methods(["POST"])
+def good_change_category(request):
+    response = {}
+    try:
+        if not request.user.is_authenticated:
+            raise ValidateError("admin-user not login!")
+        else:
+            good = Good.objects.get(id = request.POST["good_id"])
+            good.category = request.POST["category"]
             good.save()
             response['msg'] = "success!"
             response['error'] = 0

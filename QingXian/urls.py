@@ -15,10 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from QingXian.views import StaticFileView
 
 urlpatterns = [
     path('adminpage/', include('adminpage.urls')),
     path('userpage/', include('userpage.urls')),
     path('admin/', admin.site.urls),
-    path('')
+    path('media/picture/', StaticFileView.as_view())
 ]
