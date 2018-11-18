@@ -1,6 +1,6 @@
 # Create your views here.
 from django.views.decorators.http import require_http_methods
-from django.http import JsonResponse
+from django.http import JsonResponse,HttpResponse
 import requests
 from QingXian.settings import *
 from wechat.models import *
@@ -466,3 +466,16 @@ def upload_picture(request):
     finally:
         response = JsonResponse(response)
         return response
+
+def get_file(fpath):
+    if os.path.isfile(fpath):
+        return open(fpath, 'rb').read()
+    else:
+        return None
+# 显示图片
+@require_http_methods(["GET"])
+def show_image(request):
+    pic_addr = str(request.path).replace("/userpage/showimage/", "/")
+    content = get_file(pic_addr)
+    if content is not None:
+        return HttpResponse(content, content_type="image/png")

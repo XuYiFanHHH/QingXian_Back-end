@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path,re_path
 
 from userpage.views import *
 
@@ -13,5 +13,6 @@ urlpatterns = [
     path('info/getinfonumber', get_valid_good_number),
     path('trade/getall', get_all_goods),
     path('image/upload', upload_picture),
-    path('trade/collect', good_collection_changed)
+    path('trade/collect', good_collection_changed),
+    re_path(r'showimage/.*', show_image)
 ]
