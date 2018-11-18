@@ -27,4 +27,5 @@ urlpatterns = [
     path('info/collect', activity_collection_changed),
     path('info/search', get_activities_by_keyword),
     path('info/comment', add_activity_comment),
+    path('info/detail', get_activity_detail),
 ]

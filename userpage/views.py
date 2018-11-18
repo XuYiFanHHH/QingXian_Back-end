@@ -123,6 +123,24 @@ def get_user_feedback(request):
             detail = request.POST["info"]
             feedback = Feedback(user_id=user_id, detail=detail)
             feedback.save()
+
+            split_list = request.POST["pics"].split(",")
+            pic_list = []
+            for pic in split_list:
+                if pic:
+                    pic_list.append(pic)
+            pic_count = 1
+            for pic in pic_list:
+                picture = Picture(picture_url=pic,
+                                  pic_count=pic_count,
+                                  category=3,
+                                  good_id=-1,
+                                  activity_id=-1,
+                                  user_id=-1,
+                                  feedback_id=feedback.id
+                                  )
+                picture.save()
+                pic_count += 1
             response['msg'] = "success"
             response['error'] = 0
         else:
@@ -882,6 +900,79 @@ def get_good_detail(request):
             # 相关评论
             comment_list = []
             comments = Comment.objects.filter(good_id=good_id)
+            for comment in comments:
+                return_comment = {}
+                return_comment["id"] = comment.id
+                return_comment["reviewer_id"] = comment.reviewer_id
+                return_comment["reviewer_nickname"] = User.objects.get(id=comment.reviewer_id).username
+                return_comment["receiver_id"] = comment.receiver_id
+                return_comment["receiver_nickname"] = User.objects.get(id=comment.receiver_id).username
+                return_comment["detail"] = comment.detail
+                return_comment["time"] = str(comment.release_time)
+                comment_list.append(return_comment)
+
+            response["comment_list"] = comment_list
+            response["msg"] = "success"
+            response["error"] = 0
+        else:
+            raise ValidateError("invalid skey, invalid user")
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+# 二手商品查看详情
+@require_http_methods(["POST"])
+def get_activity_detail(request):
+    response = {}
+    try:
+        skey = str(request.POST["skey"])
+        user_list = User.objects.filter(skey=skey)
+        if len(user_list) > 0:
+            user_id = user_list[0].id
+            activity_id = int(request.POST["id"])
+            activity = Activity.objects.get(id=activity_id)
+            response["label"] = activity.label
+            response["category"] = activity.category
+            response["title"] = activity.title
+            response["detail"] = activity.detail
+            if activity.price_req == 1:
+                response["price"] = activity.price
+            else:
+                response["price"] = "无价位要求"
+            response["contact_msg"] = activity.contact_msg
+
+            response["user_id"] = activity.user_id
+            publisher = User.objects.get(id=activity.user_id)
+            response["user_contact_info"] = publisher.contact_info
+            response["user_credit"] = publisher.credit
+            response["nickname"] = publisher.username
+
+            avatar_url = str(Picture.objects.get(user_id=activity.user_id).picture_url)
+            if avatar_url.startswith("/home/"):
+                avatar_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + avatar_url
+            response["avatar"] = avatar_url
+            # 任务相关图片
+            pic_list = Picture.objects.filter(activity_id=activity_id)
+            pic_url_list = []
+            if len(pic_list) > 0:
+                for pic in pic_list:
+                    pic_url = pic.picture_url
+                    if pic_url.startswith("/home/ubuntu"):
+                        pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
+                    if pic_url != "":
+                        pic_url_list.append(pic_url)
+
+            if len(pic_url_list) == 0:
+                pic_url = '%s/%s' % (PIC_SAVE_ROOT,"default_image.png")
+                pic_url_list.append(str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url)
+            response["pic_list"] = pic_url_list
+
+            # 相关评论
+            comment_list = []
+            comments = Comment.objects.filter(activity_id=activity_id)
             for comment in comments:
                 return_comment = {}
                 return_comment["id"] = comment.id
