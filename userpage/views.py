@@ -387,7 +387,7 @@ def get_all_goods(request):
                     if price == -1:
                         info["price"] = "面议"
                     else:
-                        price = float('%.2f' % price)
+                        price = format(price, '.2f')
                         info["price"] = str(price)
                     info["status"] = item.status
                     info["user_id"] = item.user_id
@@ -486,7 +486,7 @@ def get_goods_by_keyword(request):
                     if price == -1:
                         info["price"] = "面议"
                     else:
-                        price = float('%.2f' % price)
+                        price = format(price, '.2f')
                         info["price"] = str(price)
                     info["status"] = item.status
                     info["user_id"] = item.user_id
