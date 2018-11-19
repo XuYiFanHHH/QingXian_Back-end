@@ -1,0 +1,7 @@
+<uwsgi>
+    <socket>:8000</socket>
+    <chdir>/home/ubuntu/QingXian</chdir>
+    <module>QingXian.wsgi</module>
+    <processes>4</processes> <!-- 进程数 -->
+    <daemonize>uwsgi.log</daemonize>
+</uwsgi>

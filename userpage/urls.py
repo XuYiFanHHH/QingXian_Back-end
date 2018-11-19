@@ -22,7 +22,7 @@ urlpatterns = [
     path('trade/comment', add_good_comment),
     path('trade/detail', get_good_detail),
 
-    path('info/getinfonumber', get_valid_good_number),
+    path('info/getinfonumber', get_valid_info_number),
     path('info/getall', get_all_activities),
     path('info/collect', activity_collection_changed),
     path('info/search', get_activities_by_keyword),

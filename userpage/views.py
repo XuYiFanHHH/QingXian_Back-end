@@ -90,17 +90,15 @@ def get_user_info(request):
     response = {}
     try:
         skey = request.POST["skey"]
-        result_list = User.objects.filter(skey=skey)
-
-        if len(result_list) > 0:
-            response['credit'] = result_list[0].credit
-            response['nickName'] = result_list[0].username
-            avatar_url = str(Picture.objects.get(user_id=result_list[0].user_id).picture_url)
-            if avatar_url.startswith("/home/"):
-                avatar_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + avatar_url
-            response["avatarUrl"] = avatar_url
-        else:
-            raise ValidateError("invalid skey, invalid user")
+        user = User.objects.get(skey=skey)
+        response['credit'] = user.credit
+        response['nickName'] = user.username
+        avatar_url = str(Picture.objects.get(user_id=user.id).picture_url)
+        if avatar_url.startswith("/home/"):
+            avatar_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + avatar_url
+        response["avatarUrl"] = avatar_url
+        response['msg'] = "success!"
+        response['error'] = 0
     except Exception as e:
         response['credit'] = -1
         response['nickName'] = ""
@@ -908,7 +906,7 @@ def get_good_detail(request):
                 return_comment["receiver_id"] = comment.receiver_id
                 return_comment["receiver_nickname"] = User.objects.get(id=comment.receiver_id).username
                 return_comment["detail"] = comment.detail
-                return_comment["time"] = str(comment.release_time)
+                return_comment["time"] = str(comment.release_time.strftime('%Y-%m-%d %H:%M'))
                 comment_list.append(return_comment)
 
             response["comment_list"] = comment_list
@@ -981,7 +979,7 @@ def get_activity_detail(request):
                 return_comment["receiver_id"] = comment.receiver_id
                 return_comment["receiver_nickname"] = User.objects.get(id=comment.receiver_id).username
                 return_comment["detail"] = comment.detail
-                return_comment["time"] = str(comment.release_time)
+                return_comment["time"] = str(comment.release_timestrftime('%Y-%m-%d %H:%M'))
                 comment_list.append(return_comment)
 
             response["comment_list"] = comment_list
