@@ -8,7 +8,7 @@ urlpatterns = [
     path('getuserallinfo', get_user_info),
 
     path('user/feedback', get_user_feedback),
-    path('user/mytask', get_all_task),
+    path('user/mytask', get_my_all_task),
     path('user/mycollection', get_all_collection),
 
     path('newtask/createtradetask', add_new_trade),

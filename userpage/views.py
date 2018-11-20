@@ -870,6 +870,11 @@ def get_good_detail(request):
             response["contact_msg"] = good.contact_msg
 
             response["user_id"] = good.user_id
+            select_result = Collection.objects.filter(user_id=good.user_id, good_id=good.id)
+            if len(select_result) > 0:
+                response["hasCollect"] = 1
+            else:
+                response["hasCollect"] = 0
             publisher = User.objects.get(id=good.user_id)
             response["user_contact_info"] = publisher.contact_info
             response["user_credit"] = publisher.credit
@@ -943,6 +948,11 @@ def get_activity_detail(request):
             response["contact_msg"] = activity.contact_msg
 
             response["user_id"] = activity.user_id
+            select_result = Collection.objects.filter(user_id=activity.user_id, activity_id=activity.id)
+            if len(select_result) > 0:
+                response["hasCollect"] = 1
+            else:
+                response["hasCollect"] = 0
             publisher = User.objects.get(id=activity.user_id)
             response["user_contact_info"] = publisher.contact_info
             response["user_credit"] = publisher.credit
@@ -1070,6 +1080,117 @@ def get_all_task(request):
                 task["category"] = item.category
                 task["label"] = item.label
                 task["status"] = item.status
+                if item.price_req == 1:
+                    task["price"] = item.price
+                else:
+                    task["price"] = "无价位要求"
+                pic_list = Picture.objects.filter(activity_id=item.id)
+                if len(pic_list) > 0:
+                    pic_url = str(pic_list[0].picture_url)
+                if len(pic_list) == 0 or pic_url == "":
+                    pic_url = '%s/%s' % (PIC_SAVE_ROOT, "default_image.png")
+
+                if pic_url.startswith("/home/ubuntu"):
+                    pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
+                task["pic_url"] = pic_url
+                task["collect_num"] = Collection.objects.filter(activity_id=item.id).count()
+                task["comment_num"] = Comment.objects.filter(activity_id=item.id).count()
+                task_list.append(task)
+        response["taskList"] = task_list
+        response['msg'] = "success！"
+        response['error'] = 0
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+# 查看自己已发布的全部任务
+@require_http_methods(["POST"])
+def get_my_all_task(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        user = User.objects.get(skey=skey)
+        status = int(request.POST["status"])
+        page_id = int(request.POST["page"])
+        all_task = []
+        all_task_index = []
+        task_list = []
+        all_good_task = Good.objects.filter(user_id=user.id)
+        all_activity_task = Activity.objects.filter(user_id=user.id)
+        if status != -1:
+            all_good_task = all_good_task.filter(status=status)
+            all_activity_task = all_activity_task.filter(status=status)
+        all_good_task = all_good_task.order_by("-submit_time")
+        all_activity_task = all_activity_task.order_by("-submit_time")
+        good_length = len(all_good_task)
+        activity_length = len(all_activity_task)
+        j = 0
+        i = 0
+        while i < good_length and j < activity_length:
+            if all_good_task[i].submit_time >= all_activity_task[j].submit_time:
+                all_task.append(all_good_task[i])
+                all_task_index.append(0)
+                i += 1
+            else:
+                all_task.append(all_activity_task[j])
+                all_task_index.append(1)
+                j += 1
+        if i < good_length:
+            for k in range(i, good_length):
+                all_task.append(all_good_task[k])
+                all_task_index.append(0)
+        else:
+            for k in range(j, activity_length):
+                all_task.append(all_activity_task[k])
+                all_task_index.append(1)
+
+        total_num = len(all_task)
+        start_num = (page_id - 1) * 10
+        if start_num <= total_num:
+            end_num = start_num + 10
+            if end_num > total_num:
+                end_num = total_num
+            all_task = all_task[start_num:end_num]
+            all_task_index = all_task_index[start_num:end_num]
+        else:
+            all_task = []
+
+        for item in all_task:
+            task = {}
+            task["task_id"] = item.id
+            task["title"] = item.title
+            task["category"] = item.category
+            task["status"] = item.status
+            if all_task_index[all_task.index(item)] == 0:
+                task["good_or_activity"] = 0
+                if item.sale_or_require == 0:
+                    task["label"] = "出售"
+                else:
+                    task["label"] = "求购"
+                price = item.price
+                if price == -1:
+                    task["price"] = "面议"
+                else:
+                    price = format(price, '.2f')
+                    task["price"] = price
+
+                pic_list = Picture.objects.filter(good_id=item.id)
+                if len(pic_list) > 0:
+                    pic_url = str(pic_list[0].picture_url)
+                if len(pic_list) == 0 or pic_url == "":
+                    pic_url = '%s/%s' % (PIC_SAVE_ROOT, "default_image.png")
+                if pic_url.startswith("/home/ubuntu"):
+                    pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
+                task["pic_url"] = pic_url
+                task["collect_num"] = Collection.objects.filter(good_id=item.id).count()
+                task["comment_num"] = Comment.objects.filter(good_id=item.id).count()
+                task_list.append(task)
+            else:
+                task["good_or_activity"] = 1
+                task["label"] = item.label
                 if item.price_req == 1:
                     task["price"] = item.price
                 else:
