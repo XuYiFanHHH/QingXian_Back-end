@@ -84,6 +84,28 @@ def userinfo_improvement(request):
         response = JsonResponse(response)
         return response
 
+# 添加用户联系信息
+@require_http_methods(["POST"])
+def update_user_contact_info(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        result_list = User.objects.filter(skey=skey)
+        if len(result_list) > 0:
+            contact_info = request.POST["contact_info"]
+            result_list[0].contact_info = contact_info
+            result_list[0].save()
+            response['msg'] = "update success"
+            response['error'] = 0
+        else:
+            raise ValidateError("invalid skey, invalid user")
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
 # 返回用户信用分,用户信息,头像图片
 @require_http_methods(["POST"])
 def get_user_info(request):

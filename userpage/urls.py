@@ -10,6 +10,7 @@ urlpatterns = [
     path('user/feedback', get_user_feedback),
     path('user/mytask', get_my_all_task),
     path('user/mycollection', get_all_collection),
+    path('user/updatecontactinfo', update_user_contact_info),
 
     path('newtask/createtradetask', add_new_trade),
     path('newtask/createinfotask', add_new_activity),
