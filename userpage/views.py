@@ -106,6 +106,28 @@ def update_user_contact_info(request):
         response = JsonResponse(response)
         return response
 
+# 获取用户联系信息
+@require_http_methods(["POST"])
+def get_user_contact_info(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        result_list = User.objects.filter(skey=skey)
+        if len(result_list) > 0:
+            contact_info = result_list[0].contact_info
+            print("info: ", contact_info)
+            response["contact_info"] = contact_info
+            response['msg'] = "success"
+            response['error'] = 0
+        else:
+            raise ValidateError("invalid skey, invalid user")
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
 # 返回用户信用分,用户信息,头像图片
 @require_http_methods(["POST"])
 def get_user_info(request):
@@ -444,6 +466,7 @@ def get_all_goods(request):
             response["datalist"] = return_list
             response["msg"] = "success"
             response["error"] = 0
+            print(response)
         else:
             raise ValidateError("invalid skey, invalid user")
     except Exception as e:
@@ -892,7 +915,7 @@ def get_good_detail(request):
             response["contact_msg"] = good.contact_msg
 
             response["user_id"] = good.user_id
-            select_result = Collection.objects.filter(user_id=good.user_id, good_id=good.id)
+            select_result = Collection.objects.filter(user_id=user_id, good_id=good.id)
             if len(select_result) > 0:
                 response["hasCollect"] = 1
             else:
@@ -948,7 +971,7 @@ def get_good_detail(request):
         response = JsonResponse(response)
         return response
 
-# 二手商品查看详情
+# 信息共享查看详情
 @require_http_methods(["POST"])
 def get_activity_detail(request):
     response = {}
@@ -970,7 +993,7 @@ def get_activity_detail(request):
             response["contact_msg"] = activity.contact_msg
 
             response["user_id"] = activity.user_id
-            select_result = Collection.objects.filter(user_id=activity.user_id, activity_id=activity.id)
+            select_result = Collection.objects.filter(user_id=user_id, activity_id=activity.id)
             if len(select_result) > 0:
                 response["hasCollect"] = 1
             else:
