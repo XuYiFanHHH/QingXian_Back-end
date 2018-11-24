@@ -69,7 +69,9 @@ def get_all_tasks(request):
             if keyword != "":
                 final_list=[]
                 for item in task_list:
-                    if item.title.find(keyword) != -1 or item.detail.find(keyword) != -1:
+                    if item.title.find(keyword) != -1 \
+                            or item.detail.find(keyword) != -1 \
+                            or item.label.find(keyword) != -1:
                         final_list.append(item)
             else:
                 final_list = task_list

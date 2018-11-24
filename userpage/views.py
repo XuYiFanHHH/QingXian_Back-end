@@ -430,7 +430,7 @@ def get_tasks(request):
         keyword = str(request.POST["keyword"])
 
         # 从已上架的商品中筛选
-        task_list = Task.objects.filter(status=1).filter(goods_or_activity=goods_or_activity)
+        task_list = Task.objects.filter(status=1, goods_or_activity=goods_or_activity)
 
         if select_index == 1:
             task_list = task_list.filter(label="出售")
