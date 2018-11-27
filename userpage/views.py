@@ -83,14 +83,14 @@ def get_user_info(request):
         avatar_url = user.avatar_url
         if avatar_url.startswith("/home/"):
             avatar_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + avatar_url
-        response["avatarUrl"] = avatar_url
+        response["avatar_url"] = avatar_url
         response["user_contact"] = user.contact_info
         response['msg'] = "success!"
         response['error'] = 0
     except Exception as e:
         response['credit'] = -1
-        response['nickName'] = ""
-        response["avatarUrl"] = ""
+        response['nickname'] = ""
+        response["avatar_url"] = ""
         response['msg'] = str(e)
         response['error'] = 1
     finally:
@@ -108,23 +108,6 @@ def update_user_info(request):
         user.avatar_url = request.POST["avatar_url"]
         user.contact_info = request.POST["user_contact"]
         user.save()
-        response['msg'] = "success"
-        response['error'] = 0
-    except Exception as e:
-        response['msg'] = str(e)
-        response['error'] = 1
-    finally:
-        response = JsonResponse(response)
-        return response
-
-# 获取用户联系信息
-@require_http_methods(["POST"])
-def get_user_contact(request):
-    response = {}
-    try:
-        skey = request.POST["skey"]
-        user = User.objects.get(skey=skey)
-        response["user_contact"] = user.contact_info
         response['msg'] = "success"
         response['error'] = 0
     except Exception as e:
@@ -195,7 +178,7 @@ def get_all_task(request):
         for item in all_task:
             task = {}
             task["task_id"] = item.id
-            task["good_or_activity"] = item.good_or_activity
+            task["goods_or_activity"] = item.goods_or_activity
             task["title"] = item.title
             task["category"] = item.category
             task["label"] = item.label
@@ -211,7 +194,7 @@ def get_all_task(request):
             task["collect_num"] = Collection.objects.filter(task_id=item.id).count()
             task["comment_num"] = Comment.objects.filter(task_id=item.id).count()
 
-            if item.good_or_activity == 0:
+            if item.goods_or_activity == 0:
                 price = item.price_for_goods
                 if price == -1:
                     task["price"] = "面议"
@@ -242,13 +225,13 @@ def get_all_collection(request):
     try:
         skey = request.POST["skey"]
         user = User.objects.get(skey=skey)
-        category = int(request.POST["category"])
+        goods_or_activity = int(request.POST["goods_or_activity"])
         page_id = int(request.POST["page"])
         collections = Collection.objects.filter(user_id=user.id).order_by("-collect_time")
         collect_list = []
         for collection in collections:
             task = Task.objects.get(id=collection.task_id)
-            if task.goods_or_activity == category:
+            if task.goods_or_activity == goods_or_activity:
                 collect_list.append(task)
 
         total_num = len(collect_list)
@@ -281,7 +264,7 @@ def get_all_collection(request):
             task["collect_num"] = Collection.objects.filter(task_id=item.id).count()
             task["comment_num"] = Comment.objects.filter(task_id=item.id).count()
 
-            if item.good_or_activity == 0:
+            if item.goods_or_activity == 0:
                 price = item.price_for_goods
                 if price == -1:
                     task["price"] = "面议"
@@ -461,7 +444,11 @@ def get_tasks(request):
                         or item.label.find(keyword) != -1:
                     final_list.append(item)
         else:
-            final_list = task_list.filter(category=category)
+            if category != "全部":
+                final_list = task_list.filter(category=category)
+            else:
+                final_list = task_list
+
 
         total_num = len(final_list)
         start_num = (page_id - 1) * 10
@@ -479,7 +466,7 @@ def get_tasks(request):
             task["label"] = item.label
             task["title"] = item.title
 
-            if item.good_or_activity == 0:
+            if item.goods_or_activity == 0:
                 price = item.price_for_goods
                 if price == -1:
                     task["price"] = "面议"
@@ -515,7 +502,8 @@ def get_tasks(request):
                 return_comment["reviewer_id"] = comment.reviewer_id
                 return_comment["reviewer_nickname"] = User.objects.get(id=comment.reviewer_id).nickname
                 return_comment["receiver_id"] = comment.receiver_id
-                return_comment["receiver_nickname"] = User.objects.get(id=comment.receiver_id).nickname
+                if comment.receiver_id != -1:
+                    return_comment["receiver_nickname"] = User.objects.get(id=comment.receiver_id).nickname
                 return_comment["detail"] = comment.detail
                 return_comment["time"] = str(comment.release_time.strftime('%Y-%m-%d %H:%M'))
                 comment_list.append(return_comment)
@@ -548,10 +536,10 @@ def get_task_detail(request):
         user = User.objects.get(skey=skey)
         user_id = user.id
         task = Task.objects.get(id=task_id)
-
+        response["task_id"] = task.id
         response["title"] = task.title
         response["detail"] = task.detail
-        if task.good_or_activity == 0:
+        if task.goods_or_activity == 0:
             price = task.price_for_goods
             if price == -1:
                 response["price"] = "面议"
@@ -565,9 +553,7 @@ def get_task_detail(request):
                 response["price"] = "无价位要求"
         response["notice"] = task.contact_msg
 
-        response["user_id"] = task.user_id
         publisher = User.objects.get(id=task.user_id)
-        response["user_contact"] = publisher.contact_info
         response["user_credit"] = publisher.credit
         response["nickname"] = publisher.nickname
         avatar_url = str(publisher.avatar_url)
@@ -598,7 +584,8 @@ def get_task_detail(request):
             return_comment["reviewer_id"] = comment.reviewer_id
             return_comment["reviewer_nickname"] = User.objects.get(id=comment.reviewer_id).nickname
             return_comment["receiver_id"] = comment.receiver_id
-            return_comment["receiver_nickname"] = User.objects.get(id=comment.receiver_id).nickname
+            if comment.receiver_id != -1:
+                return_comment["receiver_nickname"] = User.objects.get(id=comment.receiver_id).nickname
             return_comment["detail"] = comment.detail
             return_comment["time"] = str(comment.release_time.strftime('%Y-%m-%d %H:%M'))
             comment_list.append(return_comment)
@@ -612,6 +599,42 @@ def get_task_detail(request):
             response["hasCollect"] = 0
         response["msg"] = "success"
         response["error"] = 0
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+# 获取发布者联系信息
+@require_http_methods(["POST"])
+def get_publisher_contact(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        user = User.objects.get(skey=skey)
+        task = Task.objects.get(id=request.POST["task_id"])
+        publisher = User.objects.get(id=task.user_id)
+        if user.contact_info == "":
+            response['msg'] = "请先填写您自己的联系方式！"
+            response['error'] = 2
+        else:
+            if task.user_id == user.id:
+                raise LogicError("你想获取自己的联系方式？？")
+            response["user_contact"] = publisher.contact_info
+            response["notice"] = task.contact_msg
+            response['msg'] = "success"
+            response['error'] = 0
+            title = user.nickname + " 获取了你的联系方式"
+            notification = Notification(receiver_id=task.user_id,
+                                        category=1,
+                                        comment_id=-1,
+                                        relevant_user_id=user.id,
+                                        task_id=task.id,
+                                        title=title,
+                                        detail="",
+                                        user_check=0)
+            notification.save()
     except Exception as e:
         response['msg'] = str(e)
         response['error'] = 1
@@ -665,8 +688,174 @@ def add_comment(request):
                           task_id=task_id,
                           )
         comment.save()
+        task = Task.objects.get(id=task_id)
+        # 对该任务的评论，则发消息给发布者
+        if receiver_id == -1:
+            title = user.nickname + " 评论了你的发布任务"
+            notification = Notification(receiver_id=task.user_id,
+                                        category=1,
+                                        comment_id=comment.id,
+                                        relevant_user_id=user_id,
+                                        task_id=task_id,
+                                        title=title,
+                                        detail=detail,
+                                        user_check=0)
+            notification.save()
+        # 是对某人评论的回复，则发消息给该用户
+        else:
+            title = user.nickname + " 回复了你的评论"
+            notification = Notification(receiver_id=receiver_id,
+                                        category=1,
+                                        comment_id=comment.id,
+                                        relevant_user_id=user_id,
+                                        task_id=task_id,
+                                        title=title,
+                                        detail=detail,
+                                        user_check=0)
+            notification.save()
         response["msg"] = "success"
         response["error"] = 0
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+# 提醒界面初始化
+@require_http_methods(["POST"])
+def get_notifications(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        page_id = int(request.POST["page"])
+        user = User.objects.get(skey=skey)
+        notification_list = Notification.objects.filter(receiver_id=user.id)
+        # 未读的系统消息
+        system_notice_count = notification_list.filter(category=0, user_check=0).count()
+        # 用户消息按时间倒排
+        notification_list = notification_list.filter(category=1).order_by("-release_time")
+        total_num = len(notification_list)
+        start_num = (page_id - 1) * 10
+        if start_num <= total_num:
+            end_num = start_num + 10
+            if end_num > total_num:
+                end_num = total_num
+            notification_list = notification_list[start_num:end_num]
+        else:
+            notification_list = []
+        user_notice_list=[]
+        for notice in notification_list:
+            message = {}
+            task = Task.objects.get(id=notice.task_id)
+            relevant_user = User.objects.get(id=notice.relevant_user_id)
+            message["task_id"] = notice.task_id
+            message["title"] = notice.title
+            message["task_title"] = task.title
+            content = notice.detail
+            if len(content) > 25:
+                content = content[0:25] + "..."
+            message["content"] = content
+            message["user_avatar_url"] = relevant_user.avatar_url
+            # 第一张任务相关图片
+            pic_list = Picture.objects.filter(task_id=task.id).order_by("id")
+            if len(pic_list) > 0:
+                pic_url = str(pic_list[0].picture_url)
+            if len(pic_list) == 0 or pic_url == "":
+                pic_url = '%s/%s' % (PIC_SAVE_ROOT, "default_image.png")
+            if pic_url.startswith("/home/ubuntu"):
+                pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
+            message["task_image_url"] = pic_url
+            # 计算提醒发送时间
+            release_time = notice.release_time
+            now_time = timezone.now()
+            gap_days = int((now_time - release_time).days)
+            if gap_days == 1:
+                time_gap = "昨天" + str(release_time.strftime('%H:%M'))
+            elif gap_days > 1:
+                time_gap = str(release_time.strftime('%y-%m-%d %H:%M'))
+            #  一天之内
+            else:
+                gap_seconds = int((now_time - release_time).seconds)
+                if gap_seconds < 60:
+                    time_gap = str(gap_seconds) + "秒前"
+                else:
+                    gap_mins = math.floor(gap_seconds/60)
+                    if gap_mins < 60:
+                        time_gap = str(gap_mins) + "分前"
+                    else:
+                        gap_hours = math.floor(gap_mins/60)
+                        time_gap = str(gap_hours) + "小时前"
+            message["time"] = time_gap
+            user_notice_list.append(message)
+            # 用户查阅过
+            notice.user_check = 1
+            notice.save()
+        response["system_notice_count"] = system_notice_count
+        response["user_notice_list"] = user_notice_list
+        response['msg'] = "success!"
+        response['error'] = 0
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+# 系统提醒消息
+@require_http_methods(["POST"])
+def get_system_notifications(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        page_id = int(request.POST["page"])
+        user = User.objects.get(skey=skey)
+        # 系统消息按时间倒排
+        notification_list = Notification.objects.\
+            filter(receiver_id=user.id, category=0).order_by("-release_time")
+        total_num = len(notification_list)
+        start_num = (page_id - 1) * 10
+        if start_num <= total_num:
+            end_num = start_num + 10
+            if end_num > total_num:
+                end_num = total_num
+            notification_list = notification_list[start_num:end_num]
+        else:
+            notification_list = []
+        system_notice_list=[]
+        for notice in notification_list:
+            message = {}
+            message["task_id"] = notice.task_id
+            message["title"] = notice.title
+            message["content"] = notice.detail
+            # 计算提醒发送时间
+            release_time = notice.release_time
+            now_time = timezone.now()
+            gap_days = int((now_time - release_time).days)
+            if gap_days == 1:
+                time_gap = "昨天" + str(release_time.strftime('%H:%M'))
+            elif gap_days > 1:
+                time_gap = str(release_time.strftime('%y-%m-%d %H:%M'))
+            #  一天之内
+            else:
+                gap_seconds = int((now_time - release_time).seconds)
+                if gap_seconds < 60:
+                    time_gap = str(gap_seconds) + "秒前"
+                else:
+                    gap_mins = math.floor(gap_seconds/60)
+                    if gap_mins < 60:
+                        time_gap = str(gap_mins) + "分前"
+                    else:
+                        gap_hours = math.floor(gap_mins/60)
+                        time_gap = str(gap_hours) + "小时前"
+            message["time"] = time_gap
+            system_notice_list.append(message)
+            # 用户查阅过
+            notice.user_check = 1
+            notice.save()
+        response["notice_list"] = system_notice_list
+        response['msg'] = "success!"
+        response['error'] = 0
     except Exception as e:
         response['msg'] = str(e)
         response['error'] = 1

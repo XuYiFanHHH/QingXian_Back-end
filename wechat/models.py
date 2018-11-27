@@ -65,10 +65,13 @@ class Feedback(models.Model):
 
 # 提醒
 class Notification(models.Model):
-    reciever_id = models.IntegerField()
+    receiver_id = models.IntegerField()
     category = models.IntegerField()
     comment_id = models.IntegerField()
+    relevant_user_id = models.IntegerField(default=-1)
+    task_id = models.IntegerField(default=-1)
     title = models.TextField()
     detail = models.TextField()
+    user_check = models.IntegerField(default=0)
     release_time = models.DateTimeField(default=timezone.now)
     objects = models.Manager()
