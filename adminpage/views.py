@@ -110,7 +110,7 @@ def get_all_tasks(request):
                 if status == 0:
                     task["status"] = "待审核"
                 elif status == 1:
-                    task["status"] = "已审核发布"
+                    task["status"] = "已审核"
                 else:
                     task["status"] = "已下架"
 
@@ -152,7 +152,7 @@ def get_task_detail(request):
             if status == 0:
                 response["status"] = "待审核"
             elif status == 1:
-                response["status"] = "已审核发布"
+                response["status"] = "已审核"
             else:
                 response["status"] = "已下架"
             if task.goods_or_activity == 0:

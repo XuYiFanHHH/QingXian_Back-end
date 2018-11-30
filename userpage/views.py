@@ -426,9 +426,9 @@ def get_tasks(request):
 
         # 排序
         if sort_index == 0:
-            task_list = task_list.order_by('-release_time')
+            task_list = task_list.order_by('-submit_time')
         elif sort_index == 1:
-            task_list = task_list.order_by('release_time')
+            task_list = task_list.order_by('submit_time')
         elif sort_index == 2:
             task_list = task_list.order_by('-price')
         elif sort_index == 3:
@@ -465,6 +465,7 @@ def get_tasks(request):
             task["task_id"] = item.id
             task["label"] = item.label
             task["title"] = item.title
+            task["detail"] = item.detail
 
             if item.goods_or_activity == 0:
                 price = item.price_for_goods
@@ -481,17 +482,21 @@ def get_tasks(request):
 
             task["user_id"] = item.user_id
             task["user_credit"] = item.user_credit
+            publisher = User.objects.get(id=item.user_id)
+            task["user_nickname"] = publisher.nickname
+            task["user_avatar"] = publisher.avatar_url
             # 第一张相关图片
             pic_list = Picture.objects.filter(task_id=item.id).order_by("id")
+            pic_url_list = []
             if len(pic_list) > 0:
-                pic_url = str(pic_list[0].picture_url)
-            if len(pic_list) == 0 or pic_url == "":
-                pic_url = '%s/%s' % (PIC_SAVE_ROOT,"default_image.png")
+                for pic in pic_list:
+                    pic_url = pic.picture_url
+                    if pic_url.startswith("/home/ubuntu"):
+                        pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
+                    if pic_url != "":
+                        pic_url_list.append(pic_url)
+            task["pics"] = pic_url_list
 
-            if pic_url.startswith("/home/ubuntu"):
-                pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
-
-            task["pic"] = pic_url
             task["collect_num"] = Collection.objects.filter(task_id=item.id).count()
             task["comment_num"] = Comment.objects.filter(task_id=item.id).count()
             # 相关评论
@@ -514,7 +519,27 @@ def get_tasks(request):
                 task["collect"] = 1
             else:
                 task["collect"] = 0
-
+            # 计算提交时间
+            release_time = item.submit_time
+            now_time = timezone.now()
+            gap_days = int((now_time - release_time).days)
+            if gap_days == 1:
+                time_gap = "昨天" + str(release_time.strftime('%H:%M'))
+            elif gap_days > 1:
+                time_gap = str(release_time.strftime('%y-%m-%d %H:%M'))
+            #  一天之内
+            else:
+                gap_seconds = int((now_time - release_time).seconds)
+                if gap_seconds < 60:
+                    time_gap = str(gap_seconds) + "秒前"
+                else:
+                    gap_mins = math.floor(gap_seconds / 60)
+                    if gap_mins < 60:
+                        time_gap = str(gap_mins) + "分前"
+                    else:
+                        gap_hours = math.floor(gap_mins / 60)
+                        time_gap = str(gap_hours) + "小时前"
+            task["submit_time"] = time_gap
             return_list.append(task)
         response["data_list"] = return_list
         response["msg"] = "success"
@@ -589,7 +614,7 @@ def get_task_detail(request):
             return_comment["detail"] = comment.detail
             return_comment["time"] = str(comment.release_time.strftime('%Y-%m-%d %H:%M'))
             comment_list.append(return_comment)
-
+        
         response["comment_list"] = comment_list
 
         select_result = Collection.objects.filter(user_id=user_id, task_id=task.id)
@@ -597,6 +622,27 @@ def get_task_detail(request):
             response["hasCollect"] = 1
         else:
             response["hasCollect"] = 0
+        # 计算提交时间
+        release_time = task.submit_time
+        now_time = timezone.now()
+        gap_days = int((now_time - release_time).days)
+        if gap_days == 1:
+            time_gap = "昨天" + str(release_time.strftime('%H:%M'))
+        elif gap_days > 1:
+            time_gap = str(release_time.strftime('%y-%m-%d %H:%M'))
+        #  一天之内
+        else:
+            gap_seconds = int((now_time - release_time).seconds)
+            if gap_seconds < 60:
+                time_gap = str(gap_seconds) + "秒前"
+            else:
+                gap_mins = math.floor(gap_seconds / 60)
+                if gap_mins < 60:
+                    time_gap = str(gap_mins) + "分前"
+                else:
+                    gap_hours = math.floor(gap_mins / 60)
+                    time_gap = str(gap_hours) + "小时前"
+        response["submit_time"] = time_gap
         response["msg"] = "success"
         response["error"] = 0
     except Exception as e:
