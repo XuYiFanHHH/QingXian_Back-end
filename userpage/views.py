@@ -13,6 +13,27 @@ from codex.baseError import *
 from django.db.models import Q
 
 
+# 查看skey是否有效
+@require_http_methods(["POST"])
+def check_skey(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        length = User.objects.filter(skey=skey).count()
+        if length > 0:
+            response['valid'] = 1
+        else:
+            response['valid'] = 0
+        response['msg'] = "success"
+        response['error'] = 0
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+        response['valid'] = 0
+    finally:
+        response = JsonResponse(response)
+        return response
+
 # 用户登录接口
 @require_http_methods(["POST"])
 def user_login(request):
@@ -174,7 +195,7 @@ def get_all_task(request):
         # 按照页数，取某几条数据
         total_num = len(all_task)
         start_num = (page_id - 1) * 10
-        if start_num <= total_num:
+        if start_num <= total_num and start_num >= 0:
             end_num = start_num + 10
             if end_num > total_num:
                 end_num = total_num
@@ -234,6 +255,8 @@ def get_all_collection(request):
         skey = request.POST["skey"]
         user = User.objects.get(skey=skey)
         goods_or_activity = int(request.POST["goods_or_activity"])
+        if goods_or_activity != 0 and goods_or_activity != 1:
+            raise InputError("goods_or_activity input error")
         page_id = int(request.POST["page"])
         collections = Collection.objects.filter(user_id=user.id).order_by("-collect_time")
         collect_list = []
@@ -244,7 +267,7 @@ def get_all_collection(request):
 
         total_num = len(collect_list)
         start_num = (page_id - 1) * 10
-        if start_num <= total_num:
+        if start_num <= total_num and start_num >= 0:
             end_num = start_num + 10
             if end_num > total_num:
                 end_num = total_num
@@ -313,6 +336,8 @@ def add_new_task(request):
         price = request.POST["price"]
 
         goods_or_activity = int(request.POST["goods_or_activity"])
+        if goods_or_activity != 0 and goods_or_activity != 1:
+            raise InputError("goods_or_activity input error")
         if goods_or_activity == 0:
             price_for_goods = int(price)
             price_for_activity = ""
@@ -393,6 +418,8 @@ def get_valid_task_number(request):
     try:
         skey = request.POST["skey"]
         goods_or_activity = int(request.POST["goods_or_activity"])
+        if goods_or_activity != 0 and goods_or_activity != 1:
+            raise InputError("goods_or_activity input error")
         user_list = User.objects.filter(skey=skey)
         if len(user_list) > 0:
             response["number"] = Task.objects.filter(status=1).\
@@ -419,6 +446,8 @@ def get_tasks(request):
         user_id = user.id
         page_id = int(request.POST["page"])
         goods_or_activity = int(request.POST["goods_or_activity"])
+        if goods_or_activity != 0 and goods_or_activity != 1:
+            raise InputError("goods_or_activity input error")
         select_index = int(request.POST["select_index"])
         sort_index = int(request.POST["sort_index"])
         category = str(request.POST["category"])
@@ -431,24 +460,28 @@ def get_tasks(request):
             if goods_or_activity == 0:
                 task_list = task_list.filter(label="出售")
             elif goods_or_activity == 1:
-                task_list = task_list.filter(price_for_activity="")
+                task_list = task_list.filter(~Q(price_for_activity=""))
         elif select_index == 2:
             if goods_or_activity == 0:
                 task_list = task_list.filter(label="求购")
             elif goods_or_activity == 1:
-                task_list = task_list.filter(~Q(price_for_activity=""))
+                task_list = task_list.filter(price_for_activity="")
+        elif select_index != 0:
+            raise InputError("select_index input error")
 
         # 排序
         if sort_index == 0:
             task_list = task_list.order_by('-submit_time')
         elif sort_index == 1:
             task_list = task_list.order_by('submit_time')
-        elif sort_index == 2:
+        elif sort_index == 2 and goods_or_activity == 0:
             task_list = task_list.order_by('-price_for_goods')
-        elif sort_index == 3:
+        elif sort_index == 3 and goods_or_activity == 0:
             task_list = task_list.order_by('price_for_goods')
         elif sort_index == 4:
             task_list = task_list.order_by('-user_credit')
+        else:
+            raise InputError("sort_index input error")
 
         if keyword:
             final_list = []
@@ -466,7 +499,7 @@ def get_tasks(request):
 
         total_num = len(final_list)
         start_num = (page_id - 1) * 10
-        if start_num <= total_num:
+        if start_num <= total_num and start_num >= 0:
             end_num = start_num + 10
             if end_num > total_num:
                 end_num = total_num
@@ -691,7 +724,8 @@ def task_collection_changed(request):
         user_id = user.id
         task_id = int(request.POST["task_id"])
         collect_id = int(request.POST["collect_id"])
-
+        if Task.objects.filter(id=task_id).count() <= 0:
+            raise InputError("invalid task id")
         collect_result = Collection.objects.filter(user_id=user_id, task_id=task_id)
         if len(collect_result) > 0:
             collect_result.delete()
@@ -780,7 +814,7 @@ def get_notifications(request):
         notification_list = notification_list.filter(category=1).order_by("-release_time")
         total_num = len(notification_list)
         start_num = (page_id - 1) * 10
-        if start_num <= total_num:
+        if start_num <= total_num and start_num >= 0:
             end_num = start_num + 10
             if end_num > total_num:
                 end_num = total_num
@@ -846,7 +880,7 @@ def get_system_notifications(request):
             filter(receiver_id=user.id, category=0).order_by("-release_time")
         total_num = len(notification_list)
         start_num = (page_id - 1) * 10
-        if start_num <= total_num:
+        if start_num <= total_num and start_num >= 0:
             end_num = start_num + 10
             if end_num > total_num:
                 end_num = total_num

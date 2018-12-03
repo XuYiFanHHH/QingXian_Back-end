@@ -11,4 +11,8 @@ urlpatterns = [
     path('task/check', task_check),
     path('task/change_category', task_change_category),
     path('task/delete_comment', delete_comment),
+    path('user/get_user_list', get_user_list),
+    path('user/get_detail', get_user_detail),
+    path('user/history_task', get_history_tasks),
+    path('user/history_comment', get_history_comments),
 ]

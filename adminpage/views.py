@@ -8,6 +8,8 @@ from codex.baseError import *
 from wechat.models import *
 from QingXian.settings import *
 import math
+
+
 @require_http_methods(["POST"])
 def admin_login(request):
     response = {}
@@ -28,6 +30,7 @@ def admin_login(request):
         response = JsonResponse(response)
         return response
 
+
 @require_http_methods(["POST"])
 def admin_logout(request):
     response = {}
@@ -44,6 +47,7 @@ def admin_logout(request):
     finally:
         response = JsonResponse(response)
         return response
+
 
 # 获取商品数据，-1:所有的，0：待审核，1：审核通过，已发布；2：已下架
 @require_http_methods(["POST"])
@@ -79,7 +83,7 @@ def get_all_tasks(request):
             total_num = len(final_list)
             pages = math.ceil(total_num / 10)
             start_num = (page_id - 1) * 10
-            if start_num <= total_num:
+            if start_num <= total_num and start_num >= 0:
                 end_num = start_num + 10
                 if end_num > total_num:
                     end_num = total_num
@@ -134,6 +138,7 @@ def get_all_tasks(request):
         response = JsonResponse(response)
         return response
 
+
 # 查看商品详情
 @require_http_methods(["POST"])
 def get_task_detail(request):
@@ -167,7 +172,10 @@ def get_task_detail(request):
             response["user_id"] = task.user_id
             user = User.objects.get(id=task.user_id)
             response["nickname"] = user.nickname
-            response["avatar_url"] = user.avatar_url
+            avatar_url = user.avatar_url
+            if avatar_url.startswith("/home/"):
+                avatar_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + avatar_url
+            response["avatar_url"] = avatar_url
             response["credit"] = user.credit
             response["user_contact"] = user.contact_info
             # 相关图片
@@ -194,6 +202,7 @@ def get_task_detail(request):
         response = JsonResponse(response)
         return response
 
+
 # 获取十条评论
 @require_http_methods(["POST"])
 def get_comments(request):
@@ -208,7 +217,7 @@ def get_comments(request):
             total_num = len(comments)
             pages = math.ceil(total_num / 10)
             start_num = (page_id - 1) * 10
-            if start_num <= total_num:
+            if start_num <= total_num and start_num >= 0:
                 end_num = start_num + 10
                 if end_num > total_num:
                     end_num = total_num
@@ -237,6 +246,7 @@ def get_comments(request):
     finally:
         response = JsonResponse(response)
         return response
+
 
 # 上架或者下架
 @require_http_methods(["POST"])
@@ -284,6 +294,7 @@ def task_check(request):
         response = JsonResponse(response)
         return response
 
+
 # 修改商品分类
 @require_http_methods(["POST"])
 def task_change_category(request):
@@ -318,6 +329,7 @@ def task_change_category(request):
         response = JsonResponse(response)
         return response
 
+
 # 删除评论，给用户发提醒
 @require_http_methods(["POST"])
 def delete_comment(request):
@@ -344,6 +356,242 @@ def delete_comment(request):
             response['msg'] = "success!"
             response['error'] = 0
             notification.save()
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+
+# 获取用户列表
+@require_http_methods(["POST"])
+def get_user_list(request):
+    response = {}
+    try:
+        if not request.user.is_authenticated:
+            raise ValidateError("admin-user not login!")
+        else:
+            page_id = int(request.POST["page"])
+            user_id = int(request.POST["user_id"])
+            keyword = str(request.POST["keyword"])
+            user_list = []
+            if user_id != -1:
+                user = User.objects.get(id=user_id)
+                user_list.append(user)
+                pages = 1
+            else:
+                all_user_list = User.objects.all()
+                if keyword != "":
+                    for user in all_user_list:
+                        if user.nickname.find(keyword) != -1:
+                            user_list.append(user)
+                else:
+                    user_list = all_user_list
+
+                total_num = len(user_list)
+                pages = math.ceil(total_num / 10)
+                start_num = (page_id - 1) * 10
+                if start_num <= total_num and start_num >= 0:
+                    end_num = start_num + 10
+                    if end_num > total_num:
+                        end_num = total_num
+                    user_list = user_list[start_num:end_num]
+                else:
+                    user_list = []
+
+            return_list = []
+            for user in user_list:
+                info = {}
+                info["user_id"] = user.id
+                info["nickname"] = user.nickname
+                info["user_contact"] = user.contact_info
+                avatar_url = user.avatar_url
+                if avatar_url.startswith("/home/"):
+                    avatar_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + avatar_url
+                info["avatar_url"] = avatar_url
+                info["credit"] = user.credit
+                info["task_num"] = Task.objects.filter(user_id=user.id).count()
+                info["comment_num"] = Comment.objects.filter(reviewer_id=user.id).count()
+                info["collect_num"] = Collection.objects.filter(user_id=user.id).count()
+                return_list.append(info)
+            response["user_list"] = return_list
+            response["pages"] = pages
+            response['msg'] = "success!"
+            response['error'] = 0
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+
+# 获取用户信息
+@require_http_methods(["POST"])
+def get_user_detail(request):
+    response = {}
+    try:
+        if not request.user.is_authenticated:
+            raise ValidateError("admin-user not login!")
+        else:
+            user_id = int(request.POST["user_id"])
+            user = User.objects.get(id=user_id)
+            response["user_id"] = user.id
+            response["nickname"] = user.nickname
+            response["user_contact"] = user.contact_info
+            avatar_url = user.avatar_url
+            if avatar_url.startswith("/home/"):
+                avatar_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + avatar_url
+            response["avatar_url"] = avatar_url
+            response["credit"] = user.credit
+            response["task_num"] = Task.objects.filter(user_id=user.id).count()
+            response["comment_num"] = Comment.objects.filter(reviewer_id=user.id).count()
+            response["collect_num"] = Collection.objects.filter(user_id=user.id).count()
+            response['msg'] = "success!"
+            response['error'] = 0
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+
+# 给用户发消息
+@require_http_methods(["POST"])
+def send_message(request):
+    response = {}
+    try:
+        if not request.user.is_authenticated:
+            raise ValidateError("admin-user not login!")
+        else:
+            user_id = int(request.POST["user_id"])
+            detail = str(request.POST["detail"])
+            relevant_task_id = int(request.POST["relevant_task_id"])
+            notification = Notification(receiver_id=user_id,
+                                        category=0,
+                                        comment_id=-1,
+                                        relevant_user_id=-1,
+                                        task_id=relevant_task_id,
+                                        title="管理员给您发消息",
+                                        detail=detail,
+                                        user_check=0)
+            notification.save()
+            response['msg'] = "success!"
+            response['error'] = 0
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+
+# 获取历史任务
+@require_http_methods(["POST"])
+def get_history_tasks(request):
+    response = {}
+    try:
+        if not request.user.is_authenticated:
+            raise ValidateError("admin-user not login!")
+        else:
+            user_id = int(request.POST["user_id"])
+            page_id = int(request.POST["page"])
+            if User.objects.filter(id=user_id).count() <= 0:
+                raise InputError("invalid user id")
+            task_list = Task.objects.filter(user_id=user_id).order_by("-submit_time")
+            total_num = len(task_list)
+            pages = math.ceil(total_num / 10)
+            start_num = (page_id - 1) * 10
+            if start_num <= total_num and start_num >= 0:
+                end_num = start_num + 10
+                if end_num > total_num:
+                    end_num = total_num
+                task_list = task_list[start_num:end_num]
+            else:
+                task_list = []
+            return_list = []
+            for item in task_list:
+                task = {}
+                task["task_id"] = item.id
+                task["label"] = item.label
+                task["category"] = item.category
+                task["title"] = item.title
+                detail = item.detail
+                if len(detail) > 15:
+                    task["content"] = detail[0:15] + "..."
+                else:
+                    task["content"] = detail
+                if item.goods_or_activity == 0:
+                    price = item.price_for_goods
+                    if price == -1:
+                        task["price"] = "面议"
+                    else:
+                        task["price"] = str(price)
+                else:
+                    task["price"] = item.price_for_activity
+                status = item.status
+                if status == 0:
+                    task["status"] = "待审核"
+                elif status == 1:
+                    task["status"] = "已上架"
+                else:
+                    task["status"] = "已下架"
+                release_time = str(item.submit_time.strftime('%Y-%m-%d %H:%M'))
+                task["time"] = release_time
+                return_list.append(task)
+            response["data_list"] = return_list
+            response["pages"] = pages
+            response['msg'] = "success!"
+            response['error'] = 0
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+
+# 获取历史评论
+@require_http_methods(["POST"])
+def get_history_comments(request):
+    response = {}
+    try:
+        if not request.user.is_authenticated:
+            raise ValidateError("admin-user not login!")
+        else:
+            user_id = int(request.POST["user_id"])
+            page_id = int(request.POST["page"])
+            if User.objects.filter(id=user_id).count() <= 0:
+                raise InputError("invalid user id")
+            comment_list = Comment.objects.filter(reviewer_id=user_id).order_by("-release_time")
+            total_num = len(comment_list)
+            pages = math.ceil(total_num / 10)
+            start_num = (page_id - 1) * 10
+            if start_num <= total_num and start_num >= 0:
+                end_num = start_num + 10
+                if end_num > total_num:
+                    end_num = total_num
+                    comment_list = comment_list[start_num:end_num]
+            else:
+                comment_list = []
+            return_list = []
+            for item in comment_list:
+                comment_info = {}
+                comment_info["comment_id"] = item.id
+                comment_info["task_id"] = item.task_id
+                comment_info["receiver_id"] = item.receiver_id
+                if User.objects.filter(id=item.receiver_id).count() > 0:
+                    comment_info["receiver_nickname"] = User.objects.get(id=item.receiver_id).nickname
+                comment_info["detail"] = item.detail
+                comment_info["time"] = str(item.release_time.strftime('%Y-%m-%d %H:%M'))
+                print(comment_info)
+                return_list.append(comment_info)
+            response["data_list"] = return_list
+            response["pages"] = pages
+            response['msg'] = "success!"
+            response['error'] = 0
     except Exception as e:
         response['msg'] = str(e)
         response['error'] = 1

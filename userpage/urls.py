@@ -3,6 +3,7 @@ from django.urls import path,re_path
 from userpage.views import *
 
 urlpatterns = [
+    path('check_skey', check_skey),
     path('login', user_login),
     path('insert_user', insert_user),
     path('user/get_user_info', get_user_info),
