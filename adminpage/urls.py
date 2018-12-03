@@ -15,4 +15,5 @@ urlpatterns = [
     path('user/get_detail', get_user_detail),
     path('user/history_task', get_history_tasks),
     path('user/history_comment', get_history_comments),
+    path('user/send_msg', send_message)
 ]

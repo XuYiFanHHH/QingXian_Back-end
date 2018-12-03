@@ -189,8 +189,10 @@ def get_all_task(request):
         page_id = int(request.POST["page"])
         task_list = []
         all_task = Task.objects.filter(user_id=user.id)
-        if status != -1:
+        if status == 0 or status == 1 or status == 2:
             all_task = all_task.filter(status=status)
+        else:
+            raise InputError("invalid status input")
         all_task = all_task.order_by("-submit_time")
         # 按照页数，取某几条数据
         total_num = len(all_task)

@@ -1225,6 +1225,8 @@ class GetTaskDetailTest(TestCase):
         error = response_json['error']
         self.assertEqual(error, 1)
 
+
+
     # 测试无效的skey输入
     def test_invalid_skey_request(self):
         task1 = Task.objects.get(label="求购")
@@ -1475,6 +1477,656 @@ class CollectTest(TestCase):
 
         request_dict = {"task_id": task1.id,
                         "collect_id": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 1)
+
+
+# 测试get_notifications
+class GetNotificationsTest(TestCase):
+    def setUp(self):
+        User.objects.create(open_id="654321",
+                            skey="654321",
+                            nickname="1",
+                            contact_info="18800123333",
+                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+        User.objects.create(open_id="222",
+                            skey="222",
+                            nickname="2",
+                            contact_info="18800000000",
+                            avatar_url="/home/ubuntu/QingXian/media/picture/test.png")
+        user = User.objects.get(open_id="654321")
+
+        task = Task.objects.create(user_id=user.id,
+                                   user_credit=100,
+                                   goods_or_activity=0,
+                                   label="求购",
+                                   category="学习",
+                                   title="求购笔记本电脑",
+                                   detail="求购苹果电脑!求购苹果电脑!求购苹果电脑!求购苹果电脑!"
+                                          "求购苹果电脑!求购苹果电脑!求购苹果电脑!求购苹果电脑!求购苹果电脑!",
+                                   price_for_goods=-1,
+                                   price_for_activity="",
+                                   contact_msg="请加我的微信",
+                                   status=1)
+
+        title = "您发布的任务已经通过审核"
+        detail = '您发布的任务已经通过审核'
+        notification = Notification(receiver_id=task.user_id,
+                                    category=0,
+                                    comment_id=-1,
+                                    relevant_user_id=-1,
+                                    task_id=task.id,
+                                    title=title,
+                                    detail=detail,
+                                    user_check=0)
+        notification.save()
+        test_user = User.objects.get(open_id="222")
+        title = test_user.nickname + " 获取了你的联系方式"
+        notification = Notification(receiver_id=task.user_id,
+                                    category=1,
+                                    comment_id=-1,
+                                    relevant_user_id=test_user.id,
+                                    task_id=task.id,
+                                    title=title,
+                                    detail="哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈"
+                                           "哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈",
+                                    user_check=0)
+        notification.save()
+        self.request_url = "/userpage/message"
+
+    # 测试正常输入
+    def test_proper_request(self):
+        task = Task.objects.get(label="求购")
+        request_dict = {"skey": "654321",
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        self.assertEqual(response_json["system_notice_count"], 1)
+        user_notices = response_json['user_notice_list']
+        self.assertEqual(len(user_notices), 1)
+        notice = user_notices[0]
+        self.assertEqual(notice["task_id"], task.id)
+        self.assertEqual(notice["title"], "2 获取了你的联系方式")
+        self.assertEqual(notice["task_title"], "求购笔记本电脑")
+        self.assertLessEqual(len(notice["content"]), 28)
+        if str(notice["content"]).endswith("..."):
+            right = 1
+        else:
+            right = 0
+        self.assertEqual(right, 1)
+        avatar_url = "http://763850.iterator-traits.com/showimage/home/ubuntu/QingXian/media/picture/test.png"
+        self.assertEqual(notice["user_avatar_url"],avatar_url)
+        self.assertEqual(notice["task_image_url"], "")
+
+        Picture.objects.create(picture_url="/home/ubuntu/QingXian/media/picture/test.png",
+                               task_id=task.id,
+                               feedback_id=-1)
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        user_notices = response_json['user_notice_list']
+        notice = user_notices[0]
+        image_url = "http://763850.iterator-traits.com/showimage/home/ubuntu/QingXian/media/picture/test.png"
+        self.assertEqual(notice["task_image_url"], image_url)
+
+    # 测试无效的skey输入
+    def test_invalid_skey_request(self):
+        task1 = Task.objects.get(label="求购")
+        request_dict = {"skey": "2333",
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 1)
+
+        request_dict = {"page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 1)
+
+    # 无效page测试
+    def test_invalid_page_request(self):
+        request_dict = {"skey": "654321",
+                        "page": 0}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        self.assertEqual(len(response_json['user_notice_list']), 0)
+
+        request_dict = {"skey": "654321",
+                        "page": 2}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        self.assertEqual(len(response_json['user_notice_list']), 0)
+
+
+# 测试get_system_notifications
+class GetSystemNotificationsTest(TestCase):
+    def setUp(self):
+        user = User.objects.create(open_id="654321",
+                            skey="654321",
+                            nickname="1",
+                            contact_info="18800123333",
+                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+
+        task = Task.objects.create(user_id=user.id,
+                                   user_credit=100,
+                                   goods_or_activity=0,
+                                   label="求购",
+                                   category="学习",
+                                   title="求购笔记本电脑",
+                                   detail="求购苹果电脑!求购苹果电脑!求购苹果电脑!求购苹果电脑!"
+                                          "求购苹果电脑!求购苹果电脑!求购苹果电脑!求购苹果电脑!求购苹果电脑!",
+                                   price_for_goods=-1,
+                                   price_for_activity="",
+                                   contact_msg="请加我的微信",
+                                   status=1)
+
+        title = "您发布的任务已经通过审核"
+        detail = '您发布的"' + task.title + '"任务已经通过审核'
+        notification = Notification(receiver_id=task.user_id,
+                                    category=0,
+                                    comment_id=-1,
+                                    relevant_user_id=-1,
+                                    task_id=task.id,
+                                    title=title,
+                                    detail=detail,
+                                    user_check=0)
+        notification.save()
+        self.request_url = "/userpage/message/system_notification"
+
+    # 测试正常输入
+    def test_proper_request(self):
+        task = Task.objects.get(label="求购")
+        request_dict = {"skey": "654321",
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        notices = response_json['notice_list']
+        self.assertEqual(len(notices), 1)
+        notice = notices[0]
+        self.assertEqual(notice["task_id"], task.id)
+        self.assertEqual(notice["title"], "您发布的任务已经通过审核")
+        self.assertEqual(notice["content"], '您发布的"' + '求购笔记本电脑' + '"任务已经通过审核')
+
+    # 测试无效的skey输入
+    def test_invalid_skey_request(self):
+        task1 = Task.objects.get(label="求购")
+        request_dict = {"skey": "2333",
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 1)
+
+        request_dict = {"page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 1)
+
+    # 无效page测试
+    def test_invalid_page_request(self):
+        request_dict = {"skey": "654321",
+                        "page": 0}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        self.assertEqual(len(response_json['notice_list']), 0)
+
+        request_dict = {"skey": "654321",
+                        "page": 2}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        self.assertEqual(len(response_json['notice_list']), 0)
+
+
+# 测试我的关注
+class GetMyCollectionTest(TestCase):
+    def setUp(self):
+        user = User.objects.create(open_id="654321",
+                            skey="654321",
+                            nickname="1",
+                            contact_info="18800123333",
+                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+
+        test_user = User.objects.create(open_id="222",
+                            skey="222",
+                            nickname="2",
+                            contact_info="18800000000",
+                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+
+        task1 = Task.objects.create(user_id=user.id,
+                                    user_credit=100,
+                                    goods_or_activity=0,
+                                    label="求购",
+                                    category="学习",
+                                    title="求购笔记本电脑",
+                                    detail="求购苹果电脑",
+                                    price_for_goods=-1,
+                                    price_for_activity="",
+                                    contact_msg="请加我的微信",
+                                    status=1)
+
+        Picture.objects.create(picture_url="/home/ubuntu/QingXian/media/picture/test.png",
+                               task_id=task1.id,
+                               feedback_id=-1)
+
+        task2 = Task.objects.create(user_id=user.id,
+                                    user_credit=100,
+                                    goods_or_activity=0,
+                                    label="出售",
+                                    category="学习",
+                                    title="出售笔记本电脑",
+                                    detail="出售苹果电脑",
+                                    price_for_goods=8000,
+                                    price_for_activity="",
+                                    contact_msg="请加我的微信",
+                                    status=2)
+
+        task3 = Task.objects.create(user_id=user.id,
+                                    user_credit=100,
+                                    goods_or_activity=1,
+                                    label="休闲娱乐",
+                                    category="休闲娱乐",
+                                    title="一起看电影",
+                                    detail="找朋友一起看电影",
+                                    price_for_goods=-1,
+                                    price_for_activity="不高于59元/场",
+                                    contact_msg="请加我的微信",
+                                    status=1)
+
+        task4 = Task.objects.create(user_id=user.id,
+                                    user_credit=96,
+                                    goods_or_activity=1,
+                                    label="失物招领",
+                                    category="失物招领",
+                                    title="捡到笔记本",
+                                    detail="捡到笔记本电脑",
+                                    price_for_goods=-1,
+                                    price_for_activity="",
+                                    contact_msg="请加我的微信",
+                                    status=1)
+
+        Collection.objects.create(user_id=test_user.id,
+                                  task_id=task4.id)
+
+        Collection.objects.create(user_id=test_user.id,
+                                  task_id=task3.id)
+
+        Collection.objects.create(user_id=test_user.id,
+                                  task_id=task2.id)
+
+        Collection.objects.create(user_id=test_user.id,
+                                  task_id=task1.id)
+
+        self.request_url = "/userpage/user/my_collection"
+
+    # 正确输入测试
+    def test_proper_request(self):
+        request_dict = {"skey": "222",
+                        "goods_or_activity": 0,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        data_list = response_json['task_list']
+        self.assertEqual(len(data_list), 2)
+        task1 = data_list[0]
+        task2 = data_list[1]
+        self.assertEqual(task2["label"], "出售")
+        self.assertEqual(task2["title"], "出售笔记本电脑")
+        self.assertEqual(task2["price"], "8000")
+        self.assertEqual(task2["category"], "学习")
+        self.assertEqual(task2["status"], 2)
+        self.assertEqual(task2["pic"],
+                         "http://763850.iterator-traits.com" +
+                         "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
+        self.assertEqual(task2["collect_num"], 1)
+        self.assertEqual(task2["comment_num"], 0)
+
+        self.assertEqual(task1["pic"],
+                         "http://763850.iterator-traits.com/showimage" +
+                         "/home/ubuntu/QingXian/media/picture/test.png")
+        self.assertEqual(task1["price"], "面议")
+
+        # 除了价格的表述，其余的各个键值对取法相同
+        request_dict = {"skey": "222",
+                        "goods_or_activity": 1,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        data_list = response_json['task_list']
+        self.assertEqual(len(data_list), 2)
+        task1 = data_list[0]
+        task2 = data_list[1]
+        self.assertEqual(task1["price"], "不高于59元/场")
+        self.assertEqual(task2["price"], "无价位要求")
+
+        # 无收藏
+        request_dict = {"skey": "654321",
+                        "goods_or_activity": 0,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        data_list = response_json['task_list']
+        self.assertEqual(len(data_list), 0)
+
+        request_dict = {"skey": "654321",
+                        "goods_or_activity": 1,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        data_list = response_json['task_list']
+        self.assertEqual(len(data_list), 0)
+
+    # 测试不合法的skey输入
+    def test_invalid_skey_request(self):
+        request_dict = {"skey": "2333",
+                        "goods_or_activity": 1,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 1)
+        # 测试无skey输入
+        request_dict = {"goods_or_activity": 1,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 1)
+
+    # 错误goods_or_activity测试
+    def test_invalid_goods_or_activity_request(self):
+        request_dict = {"skey": "222",
+                        "goods_or_activity": -1,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 1)
+
+        request_dict = {"skey": "222",
+                        "goods_or_activity": 2,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 1)
+
+    # 无效page测试
+    def test_invalid_page_request(self):
+        request_dict = {"skey": "222",
+                        "goods_or_activity": 0,
+                        "page": 0}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        self.assertEqual(len(response_json['task_list']), 0)
+
+        request_dict = {"skey": "222",
+                        "goods_or_activity": 1,
+                        "page": 2}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        self.assertEqual(len(response_json['task_list']), 0)
+
+
+# 测试我的发布任务
+class GetMyCollectionTest(TestCase):
+    def setUp(self):
+        user = User.objects.create(open_id="222",
+                                    skey="222",
+                                    nickname="1",
+                                    contact_info="18800123333",
+                                    avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+
+        task2 = Task.objects.create(user_id=user.id,
+                                    user_credit=100,
+                                    goods_or_activity=0,
+                                    label="出售",
+                                    category="学习",
+                                    title="出售笔记本电脑",
+                                    detail="出售苹果电脑",
+                                    price_for_goods=8000,
+                                    price_for_activity="",
+                                    contact_msg="请加我的微信",
+                                    status=1)
+
+        task1 = Task.objects.create(user_id=user.id,
+                                    user_credit=100,
+                                    goods_or_activity=0,
+                                    label="求购",
+                                    category="学习",
+                                    title="求购笔记本电脑",
+                                    detail="求购苹果电脑",
+                                    price_for_goods=-1,
+                                    price_for_activity="",
+                                    contact_msg="请加我的微信",
+                                    status=1)
+
+        Picture.objects.create(picture_url="/home/ubuntu/QingXian/media/picture/test.png",
+                               task_id=task1.id,
+                               feedback_id=-1)
+
+        task3 = Task.objects.create(user_id=user.id,
+                                    user_credit=100,
+                                    goods_or_activity=1,
+                                    label="休闲娱乐",
+                                    category="休闲娱乐",
+                                    title="一起看电影",
+                                    detail="找朋友一起看电影",
+                                    price_for_goods=-1,
+                                    price_for_activity="不高于59元/场",
+                                    contact_msg="请加我的微信",
+                                    status=0)
+
+        task4 = Task.objects.create(user_id=user.id,
+                                    user_credit=96,
+                                    goods_or_activity=1,
+                                    label="失物招领",
+                                    category="失物招领",
+                                    title="捡到笔记本",
+                                    detail="捡到笔记本电脑",
+                                    price_for_goods=-1,
+                                    price_for_activity="",
+                                    contact_msg="请加我的微信",
+                                    status=2)
+
+        self.request_url = "/userpage/user/my_task"
+
+    # 正确输入测试
+    def test_proper_request(self):
+        request_dict = {"skey": "222",
+                        "status": 1,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        data_list = response_json['task_list']
+        self.assertEqual(len(data_list), 2)
+        task1 = data_list[0]
+        task2 = data_list[1]
+        self.assertEqual(task2["label"], "出售")
+        self.assertEqual(task2["goods_or_activity"], 0)
+        self.assertEqual(task2["title"], "出售笔记本电脑")
+        self.assertEqual(task2["price"], "8000")
+        self.assertEqual(task2["category"], "学习")
+        self.assertEqual(task2["pic"],
+                         "http://763850.iterator-traits.com" +
+                         "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
+        self.assertEqual(task2["collect_num"], 0)
+        self.assertEqual(task2["comment_num"], 0)
+
+        self.assertEqual(task1["pic"],
+                         "http://763850.iterator-traits.com/showimage" +
+                         "/home/ubuntu/QingXian/media/picture/test.png")
+        self.assertEqual(task1["price"], "面议")
+
+        # 除了价格的表述，其余的各个键值对取法相同
+        request_dict = {"skey": "222",
+                        "status": 0,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        data_list = response_json['task_list']
+        self.assertEqual(len(data_list), 1)
+        task1 = data_list[0]
+        self.assertEqual(task1["price"], "不高于59元/场")
+
+        request_dict = {"skey": "222",
+                        "status": 2,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        data_list = response_json['task_list']
+        self.assertEqual(len(data_list), 1)
+        task1 = data_list[0]
+        self.assertEqual(task1["price"], "无价位要求")
+
+        # 无发布任务
+        user = User.objects.create(open_id="654321",
+                                   skey="654321",
+                                   nickname="2",
+                                   contact_info="18800333333",
+                                   avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+
+        request_dict = {"skey": "654321",
+                        "status": 0,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        data_list = response_json['task_list']
+        self.assertEqual(len(data_list), 0)
+
+        request_dict = {"skey": "654321",
+                        "status": 1,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        data_list = response_json['task_list']
+        self.assertEqual(len(data_list), 0)
+
+        request_dict = {"skey": "654321",
+                        "status": 2,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        data_list = response_json['task_list']
+        self.assertEqual(len(data_list), 0)
+
+    # 测试不合法的skey输入
+    def test_invalid_skey_request(self):
+        request_dict = {"skey": "2333",
+                        "status": 1,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 1)
+        # 测试无skey输入
+        request_dict = {"status": 1,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 1)
+
+    # 错误status测试
+    def test_invalid_goods_or_activity_request(self):
+        request_dict = {"skey": "222",
+                        "status": -1,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 1)
+
+        request_dict = {"skey": "222",
+                        "status": 3,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 1)
+
+    # 无效page测试
+    def test_invalid_page_request(self):
+        request_dict = {"skey": "222",
+                        "status": 0,
+                        "page": 0}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        self.assertEqual(len(response_json['task_list']), 0)
+
+        request_dict = {"skey": "222",
+                        "status": 1,
+                        "page": 2}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        self.assertEqual(len(response_json['task_list']), 0)
+
+
+# 测试反馈
+class FeedbackTest(TestCase):
+    def setUp(self):
+        user = User.objects.create(open_id="222",
+                                   skey="222",
+                                   nickname="1",
+                                   contact_info="18800123333",
+                                   avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+
+        self.request_url = "/userpage/user/feedback"
+
+    # 正确输入测试
+    def test_proper_request(self):
+        request_dict = {"skey": "222",
+                        "detail": "反馈",
+                        "pics": ""}
+        user = User.objects.get(skey="222")
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        feedback_list = Feedback.objects.all()
+        self.assertEqual(len(feedback_list), 1)
+        feedback = feedback_list[0]
+        self.assertEqual(feedback.user_id, user.id)
+        self.assertEqual(feedback.detail, "反馈")
+        self.assertEqual(Picture.objects.all().count(), 0)
+
+        # 带图反馈
+        request_dict = {"skey": "222",
+                        "detail": "反馈2",
+                        "pics": ["/home/ubuntu/QingXian/media/picture/test.png"]}
+        user = User.objects.get(skey="222")
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        feedback_list = Feedback.objects.all()
+        self.assertEqual(len(feedback_list), 2)
+        feedback = feedback_list[1]
+        self.assertEqual(Picture.objects.all().count(), 1)
+        picture = Picture.objects.all()[0]
+        self.assertEqual(picture.feedback_id, feedback.id)
+
+
+    # 测试不合法的skey输入
+    def test_invalid_skey_request(self):
+        request_dict = {"skey": "2333",
+                        "detail": "反馈",
+                        "pics": ""}
+        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 1)
+        # 测试无skey输入
+        request_dict = {"detail": "反馈",
+                        "pics": ""}
         response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
