@@ -2,6 +2,7 @@ from django.db import models
 import django.utils.timezone as timezone
 # Create your models here.
 
+
 # 用户表
 class User(models.Model):
     open_id = models.CharField(max_length=64, unique=True, db_index=True)
@@ -11,6 +12,7 @@ class User(models.Model):
     credit = models.IntegerField(default=100)
     contact_info = models.CharField(max_length=256, default="")
     objects = models.Manager()
+
 
 # 二手商品表
 class Task(models.Model):
@@ -33,6 +35,7 @@ class Task(models.Model):
     undercarriage_reason = models.CharField(max_length=256)
     objects = models.Manager()
 
+
 # 评论
 class Comment(models.Model):
     reviewer_id = models.IntegerField()
@@ -42,12 +45,14 @@ class Comment(models.Model):
     release_time = models.DateTimeField(default=timezone.now)
     objects = models.Manager()
 
+
 # 图片
 class Picture(models.Model):
     picture_url = models.CharField(max_length=256)
     task_id = models.IntegerField()
     feedback_id = models.IntegerField()
     objects = models.Manager()
+
 
 # 收藏
 class Collection(models.Model):
@@ -56,12 +61,14 @@ class Collection(models.Model):
     collect_time = models.DateTimeField(default=timezone.now)
     objects = models.Manager()
 
+
 # 反馈
 class Feedback(models.Model):
     user_id = models.IntegerField()
     detail = models.TextField()
     release_time = models.DateTimeField(default=timezone.now)
     objects = models.Manager()
+
 
 # 提醒
 class Notification(models.Model):

@@ -11,6 +11,8 @@ import time
 import uuid
 from codex.baseError import *
 from django.db.models import Q
+
+
 # 用户登录接口
 @require_http_methods(["POST"])
 def user_login(request):
@@ -48,6 +50,7 @@ def user_login(request):
         response = JsonResponse(response)
         return response
 
+
 # 完善用户信息,增加头像图片
 @require_http_methods(["POST"])
 def insert_user(request):
@@ -70,6 +73,7 @@ def insert_user(request):
     finally:
         response = JsonResponse(response)
         return response
+
 
 # 返回用户信用分,用户信息,头像图片
 @require_http_methods(["POST"])
@@ -97,6 +101,7 @@ def get_user_info(request):
         response = JsonResponse(response)
         return response
 
+
 # 更新用户信息
 @require_http_methods(["POST"])
 def update_user_info(request):
@@ -116,6 +121,7 @@ def update_user_info(request):
     finally:
         response = JsonResponse(response)
         return response
+
 
 # 反馈给管理者(先保存到服务器)
 @require_http_methods(["POST"])
@@ -148,6 +154,7 @@ def get_user_feedback(request):
     finally:
         response = JsonResponse(response)
         return response
+
 
 # 查看自己已发布的全部任务
 @require_http_methods(["POST"])
@@ -195,7 +202,7 @@ def get_all_task(request):
             task["comment_num"] = Comment.objects.filter(task_id=item.id).count()
 
             if item.goods_or_activity == 0:
-                price = item.price_for_goods
+                price = int(item.price_for_goods)
                 if price == -1:
                     task["price"] = "面议"
                 else:
@@ -217,6 +224,7 @@ def get_all_task(request):
     finally:
         response = JsonResponse(response)
         return response
+
 
 # 查看自己的全部收藏
 @require_http_methods(["POST"])
@@ -265,7 +273,7 @@ def get_all_collection(request):
             task["comment_num"] = Comment.objects.filter(task_id=item.id).count()
 
             if item.goods_or_activity == 0:
-                price = item.price_for_goods
+                price = int(item.price_for_goods)
                 if price == -1:
                     task["price"] = "面议"
                 else:
@@ -286,6 +294,7 @@ def get_all_collection(request):
     finally:
         response = JsonResponse(response)
         return response
+
 
 # 添加任务
 @require_http_methods(["POST"])
@@ -345,6 +354,7 @@ def add_new_task(request):
         response = JsonResponse(response)
         return response
 
+
 # 上传图片
 @require_http_methods(["POST"])
 def upload_picture(request):
@@ -375,6 +385,7 @@ def upload_picture(request):
         response = JsonResponse(response)
         return response
 
+
 # 获取已上架任务总数
 @require_http_methods(["POST"])
 def get_valid_task_number(request):
@@ -397,6 +408,7 @@ def get_valid_task_number(request):
         response = JsonResponse(response)
         return response
 
+
 # 根据页数和相关参数获取某一些任务
 @require_http_methods(["POST"])
 def get_tasks(request):
@@ -416,13 +428,15 @@ def get_tasks(request):
         task_list = Task.objects.filter(status=1, goods_or_activity=goods_or_activity)
 
         if select_index == 1:
-            task_list = task_list.filter(label="出售")
+            if goods_or_activity == 0:
+                task_list = task_list.filter(label="出售")
+            elif goods_or_activity == 1:
+                task_list = task_list.filter(price_for_activity="")
         elif select_index == 2:
-            task_list = task_list.filter(label="求购")
-        elif select_index == 3:
-            task_list = task_list.filter(price="")
-        elif select_index == 4:
-            task_list = task_list.filter(~Q(price=""))
+            if goods_or_activity == 0:
+                task_list = task_list.filter(label="求购")
+            elif goods_or_activity == 1:
+                task_list = task_list.filter(~Q(price_for_activity=""))
 
         # 排序
         if sort_index == 0:
@@ -430,9 +444,9 @@ def get_tasks(request):
         elif sort_index == 1:
             task_list = task_list.order_by('submit_time')
         elif sort_index == 2:
-            task_list = task_list.order_by('-price')
+            task_list = task_list.order_by('-price_for_goods')
         elif sort_index == 3:
-            task_list = task_list.order_by('price')
+            task_list = task_list.order_by('price_for_goods')
         elif sort_index == 4:
             task_list = task_list.order_by('-user_credit')
 
@@ -468,7 +482,7 @@ def get_tasks(request):
             task["detail"] = item.detail
 
             if item.goods_or_activity == 0:
-                price = item.price_for_goods
+                price = int(item.price_for_goods)
                 if price == -1:
                     task["price"] = "面议"
                 else:
@@ -484,7 +498,10 @@ def get_tasks(request):
             task["user_credit"] = item.user_credit
             publisher = User.objects.get(id=item.user_id)
             task["user_nickname"] = publisher.nickname
-            task["user_avatar"] = publisher.avatar_url
+            avatar_url = publisher.avatar_url
+            if avatar_url.startswith("/home/"):
+                avatar_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + avatar_url
+            task["user_avatar"] = avatar_url
             # 第一张相关图片
             pic_list = Picture.objects.filter(task_id=item.id).order_by("id")
             pic_url_list = []
@@ -496,6 +513,11 @@ def get_tasks(request):
                     if pic_url != "":
                         pic_url_list.append(pic_url)
             task["pics"] = pic_url_list
+            if len(pic_url_list) > 0:
+                task["pic"] = pic_url_list[0]
+            else:
+                pic_url = '%s/%s' % (PIC_SAVE_ROOT, "default_image.png")
+                task["pic"] = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
 
             task["collect_num"] = Collection.objects.filter(task_id=item.id).count()
             task["comment_num"] = Comment.objects.filter(task_id=item.id).count()
@@ -516,30 +538,14 @@ def get_tasks(request):
 
             select_result = Collection.objects.filter(user_id=user_id, task_id=item.id)
             if len(select_result) > 0:
-                task["collect"] = 1
+                task["hasCollect"] = 1
             else:
-                task["collect"] = 0
+                task["hasCollect"] = 0
             # 计算提交时间
-            release_time = item.submit_time
-            now_time = timezone.now()
-            gap_days = int((now_time - release_time).days)
-            if gap_days == 1:
-                time_gap = "昨天" + str(release_time.strftime('%H:%M'))
-            elif gap_days > 1:
-                time_gap = str(release_time.strftime('%y-%m-%d %H:%M'))
-            #  一天之内
-            else:
-                gap_seconds = int((now_time - release_time).seconds)
-                if gap_seconds < 60:
-                    time_gap = str(gap_seconds) + "秒前"
-                else:
-                    gap_mins = math.floor(gap_seconds / 60)
-                    if gap_mins < 60:
-                        time_gap = str(gap_mins) + "分前"
-                    else:
-                        gap_hours = math.floor(gap_mins / 60)
-                        time_gap = str(gap_hours) + "小时前"
-            task["submit_time"] = time_gap
+            release_time = str(item.submit_time.strftime('%Y-%m-%d %H:%M'))
+            un_time = time.mktime(item.submit_time.timetuple())
+            task["submit_time_count"] = un_time
+            task["submit_time"] = release_time
             return_list.append(task)
         response["data_list"] = return_list
         response["msg"] = "success"
@@ -550,6 +556,7 @@ def get_tasks(request):
     finally:
         response = JsonResponse(response)
         return response
+
 
 # 任务查看详情
 @require_http_methods(["POST"])
@@ -565,7 +572,7 @@ def get_task_detail(request):
         response["title"] = task.title
         response["detail"] = task.detail
         if task.goods_or_activity == 0:
-            price = task.price_for_goods
+            price = int(task.price_for_goods)
             if price == -1:
                 response["price"] = "面议"
             else:
@@ -623,26 +630,10 @@ def get_task_detail(request):
         else:
             response["hasCollect"] = 0
         # 计算提交时间
-        release_time = task.submit_time
-        now_time = timezone.now()
-        gap_days = int((now_time - release_time).days)
-        if gap_days == 1:
-            time_gap = "昨天" + str(release_time.strftime('%H:%M'))
-        elif gap_days > 1:
-            time_gap = str(release_time.strftime('%y-%m-%d %H:%M'))
-        #  一天之内
-        else:
-            gap_seconds = int((now_time - release_time).seconds)
-            if gap_seconds < 60:
-                time_gap = str(gap_seconds) + "秒前"
-            else:
-                gap_mins = math.floor(gap_seconds / 60)
-                if gap_mins < 60:
-                    time_gap = str(gap_mins) + "分前"
-                else:
-                    gap_hours = math.floor(gap_mins / 60)
-                    time_gap = str(gap_hours) + "小时前"
-        response["submit_time"] = time_gap
+        release_time = str(task.submit_time.strftime('%Y-%m-%d %H:%M'))
+        un_time = time.mktime(task.submit_time.timetuple())
+        response["submit_time_count"] = un_time
+        response["submit_time"] = release_time
         response["msg"] = "success"
         response["error"] = 0
     except Exception as e:
@@ -651,6 +642,7 @@ def get_task_detail(request):
     finally:
         response = JsonResponse(response)
         return response
+
 
 # 获取发布者联系信息
 @require_http_methods(["POST"])
@@ -688,6 +680,7 @@ def get_publisher_contact(request):
         response = JsonResponse(response)
         return response
 
+
 # 二手商品收藏与取消收藏
 @require_http_methods(["POST"])
 def task_collection_changed(request):
@@ -697,6 +690,7 @@ def task_collection_changed(request):
         user = User.objects.get(skey=skey)
         user_id = user.id
         task_id = int(request.POST["task_id"])
+        collect_id = int(request.POST["collect_id"])
 
         collect_result = Collection.objects.filter(user_id=user_id, task_id=task_id)
         if len(collect_result) > 0:
@@ -708,6 +702,7 @@ def task_collection_changed(request):
                                     )
             collection.save()
             response["hasCollect"] = 1
+        response["collect_id"] = collect_id
         response["msg"] = "success"
         response["error"] = 0
     except Exception as e:
@@ -716,6 +711,7 @@ def task_collection_changed(request):
     finally:
         response = JsonResponse(response)
         return response
+
 
 # 任务添加评论
 @require_http_methods(["POST"])
@@ -768,6 +764,7 @@ def add_comment(request):
         response = JsonResponse(response)
         return response
 
+
 # 提醒界面初始化
 @require_http_methods(["POST"])
 def get_notifications(request):
@@ -802,37 +799,24 @@ def get_notifications(request):
             if len(content) > 25:
                 content = content[0:25] + "..."
             message["content"] = content
-            message["user_avatar_url"] = relevant_user.avatar_url
+            avatar_url = str(relevant_user.avatar_url)
+            if avatar_url.startswith("/home/"):
+                avatar_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + avatar_url
+            message["user_avatar_url"] = avatar_url
             # 第一张任务相关图片
             pic_list = Picture.objects.filter(task_id=task.id).order_by("id")
             if len(pic_list) > 0:
                 pic_url = str(pic_list[0].picture_url)
             if len(pic_list) == 0 or pic_url == "":
-                pic_url = '%s/%s' % (PIC_SAVE_ROOT, "default_image.png")
+                pic_url = ""
             if pic_url.startswith("/home/ubuntu"):
                 pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
             message["task_image_url"] = pic_url
             # 计算提醒发送时间
-            release_time = notice.release_time
-            now_time = timezone.now()
-            gap_days = int((now_time - release_time).days)
-            if gap_days == 1:
-                time_gap = "昨天" + str(release_time.strftime('%H:%M'))
-            elif gap_days > 1:
-                time_gap = str(release_time.strftime('%y-%m-%d %H:%M'))
-            #  一天之内
-            else:
-                gap_seconds = int((now_time - release_time).seconds)
-                if gap_seconds < 60:
-                    time_gap = str(gap_seconds) + "秒前"
-                else:
-                    gap_mins = math.floor(gap_seconds/60)
-                    if gap_mins < 60:
-                        time_gap = str(gap_mins) + "分前"
-                    else:
-                        gap_hours = math.floor(gap_mins/60)
-                        time_gap = str(gap_hours) + "小时前"
-            message["time"] = time_gap
+            release_time = str(notice.release_time.strftime('%Y-%m-%d %H:%M'))
+            un_time = time.mktime(notice.release_time.timetuple())
+            message["time_count"] = un_time
+            message["time"] = release_time
             user_notice_list.append(message)
             # 用户查阅过
             notice.user_check = 1
@@ -847,6 +831,7 @@ def get_notifications(request):
     finally:
         response = JsonResponse(response)
         return response
+
 
 # 系统提醒消息
 @require_http_methods(["POST"])
@@ -875,26 +860,10 @@ def get_system_notifications(request):
             message["title"] = notice.title
             message["content"] = notice.detail
             # 计算提醒发送时间
-            release_time = notice.release_time
-            now_time = timezone.now()
-            gap_days = int((now_time - release_time).days)
-            if gap_days == 1:
-                time_gap = "昨天" + str(release_time.strftime('%H:%M'))
-            elif gap_days > 1:
-                time_gap = str(release_time.strftime('%y-%m-%d %H:%M'))
-            #  一天之内
-            else:
-                gap_seconds = int((now_time - release_time).seconds)
-                if gap_seconds < 60:
-                    time_gap = str(gap_seconds) + "秒前"
-                else:
-                    gap_mins = math.floor(gap_seconds/60)
-                    if gap_mins < 60:
-                        time_gap = str(gap_mins) + "分前"
-                    else:
-                        gap_hours = math.floor(gap_mins/60)
-                        time_gap = str(gap_hours) + "小时前"
-            message["time"] = time_gap
+            release_time = str(notice.release_time.strftime('%Y-%m-%d %H:%M'))
+            un_time = time.mktime(notice.release_time.timetuple())
+            message["time_count"] = un_time
+            message["time"] = release_time
             system_notice_list.append(message)
             # 用户查阅过
             notice.user_check = 1

@@ -9,5 +9,7 @@
   "DB_PASS": "",
   "DB_HOST": "127.0.0.1",
   "DB_PORT": "3306",
+  "DB_CHARSET": "utf8mb4",
+  "DB_COLLATION": "utf8mb4_unicode_ci",
   "SITE_DOMAIN": "http://your.domain"
 }

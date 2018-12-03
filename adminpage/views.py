@@ -110,7 +110,7 @@ def get_all_tasks(request):
                 if status == 0:
                     task["status"] = "待审核"
                 elif status == 1:
-                    task["status"] = "已审核"
+                    task["status"] = "已上架"
                 else:
                     task["status"] = "已下架"
 
@@ -152,7 +152,7 @@ def get_task_detail(request):
             if status == 0:
                 response["status"] = "待审核"
             elif status == 1:
-                response["status"] = "已审核"
+                response["status"] = "已上架"
             else:
                 response["status"] = "已下架"
             if task.goods_or_activity == 0:
@@ -185,26 +185,6 @@ def get_task_detail(request):
                 pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
                 pic_url_list.append(pic_url)
             response["pics"] = pic_url_list
-            # 相关评论
-            comment_list = []
-            comments = Comment.objects.filter(task_id=task.id)
-            end_num = len(comments)
-            response["comment_pages"] = math.ceil(end_num / 10)
-            if end_num > 10:
-                end_num = 10
-            comments = comments[0:end_num]
-            for comment in comments:
-                return_comment = {}
-                return_comment["comment_id"] = comment.id
-                return_comment["reviewer_id"] = comment.reviewer_id
-                return_comment["reviewer_nickname"] = User.objects.get(id=comment.reviewer_id).nickname
-                return_comment["receiver_id"] = comment.receiver_id
-                if comment.receiver_id != -1:
-                    return_comment["receiver_nickname"] = User.objects.get(id=comment.receiver_id).nickname
-                return_comment["detail"] = comment.detail
-                return_comment["time"] = str(comment.release_time.strftime('%Y-%m-%d %H:%M'))
-                comment_list.append(return_comment)
-            response["comment_list"] = comment_list
             response['msg'] = "success!"
             response['error'] = 0
     except Exception as e:
