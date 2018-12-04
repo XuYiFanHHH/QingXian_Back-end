@@ -540,7 +540,7 @@ class GetTaskTest(TestCase):
 
         test_user = User.objects.get(open_id="222")
         Collection.objects.create(user_id=test_user.id,
-                                  task_id=task.id,)
+                                  task_id=task.id)
         Comment.objects.create(reviewer_id=test_user.id,
                                receiver_id=user.id,
                                task_id=task.id,
@@ -935,7 +935,7 @@ class GetTaskTest(TestCase):
         self.assertEqual(len(data_list), 2)
         self.assertEqual(data_list[0]["label"], "出售")
         self.assertEqual(data_list[1]["label"], "求购")
-        # 消息活动sort_index=2，报错
+        # 消息活动sort_index=2，信用降序
         request_dict = {"skey": "222",
                         "goods_or_activity": 1,
                         "category": "全部",
@@ -945,7 +945,11 @@ class GetTaskTest(TestCase):
                         "page": 1}
         response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
         error = response_json['error']
-        self.assertEqual(error, 1)
+        self.assertEqual(error, 0)
+        data_list = response_json['data_list']
+        self.assertEqual(len(data_list), 2)
+        self.assertEqual(data_list[0]["label"], "休闲娱乐")
+        self.assertEqual(data_list[1]["label"], "失物招领")
 
         # 商品sort_index=3，价格升序
         request_dict = {"skey": "222",
@@ -989,7 +993,7 @@ class GetTaskTest(TestCase):
         self.assertEqual(len(data_list), 2)
         self.assertEqual(data_list[0]["label"], "求购")
         self.assertEqual(data_list[1]["label"], "出售")
-        # 消息活动sort_index=1，信用降序
+        # 消息活动sort_index=4，报错
         request_dict = {"skey": "222",
                         "goods_or_activity": 1,
                         "category": "全部",
@@ -999,11 +1003,7 @@ class GetTaskTest(TestCase):
                         "page": 1}
         response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
         error = response_json['error']
-        self.assertEqual(error, 0)
-        data_list = response_json['data_list']
-        self.assertEqual(len(data_list), 2)
-        self.assertEqual(data_list[0]["label"], "休闲娱乐")
-        self.assertEqual(data_list[1]["label"], "失物招领")
+        self.assertEqual(error, 1)
 
     # 测试不存在的skey输入
     def test_invalid_skey_request(self):
@@ -1113,7 +1113,7 @@ class GetTaskDetailTest(TestCase):
 
         test_user = User.objects.get(open_id="222")
         Collection.objects.create(user_id=test_user.id,
-                                  task_id=task.id,)
+                                  task_id=task.id)
         Comment.objects.create(reviewer_id=test_user.id,
                                receiver_id=user.id,
                                task_id=task.id,

@@ -478,9 +478,11 @@ def get_tasks(request):
             task_list = task_list.order_by('submit_time')
         elif sort_index == 2 and goods_or_activity == 0:
             task_list = task_list.order_by('-price_for_goods')
+        elif sort_index == 2 and goods_or_activity == 1:
+            task_list = task_list.order_by('-user_credit')
         elif sort_index == 3 and goods_or_activity == 0:
             task_list = task_list.order_by('price_for_goods')
-        elif sort_index == 4:
+        elif sort_index == 4 and goods_or_activity == 0:
             task_list = task_list.order_by('-user_credit')
         else:
             raise InputError("sort_index input error")
