@@ -59,9 +59,13 @@ def get_all_tasks(request):
         else:
             page_id = int(request.POST["page"])
             status = int(request.POST["status"])
+            if status != -1 and status != 0 and status != 1 and status != 2:
+                raise InputError("invalid status input")
             category = str(request.POST["category"])
             keyword = str(request.POST["keyword"])
             goods_or_activity = int(request.POST["goods_or_activity"])
+            if goods_or_activity != 0 and goods_or_activity != 1:
+                raise InputError("invalid goods_or_activity input")
             task_list = Task.objects.filter(goods_or_activity=goods_or_activity)
             if category != "全部":
                 task_list = task_list.filter(category=category)
@@ -213,7 +217,7 @@ def get_comments(request):
         else:
             page_id = int(request.POST["page"])
             task_id = int(request.POST["task_id"])
-            comments = Comment.objects.filter(task_id=task_id).order_by("-release_time")
+            comments = Comment.objects.filter(task_id=task_id)
             total_num = len(comments)
             pages = math.ceil(total_num / 10)
             start_num = (page_id - 1) * 10
@@ -273,6 +277,8 @@ def task_check(request):
                 undercarriage_reason = request.POST["undercarriage_reason"]
                 title = "您发布的任务已经下架"
                 detail = '您发布的"' + task_title + '"任务已经下架。下架原因：' + undercarriage_reason
+            else:
+                raise InputError("invalid agree input")
 
             response['msg'] = "success!"
             response['error'] = 0
