@@ -473,8 +473,12 @@ def send_message(request):
             raise ValidateError("admin-user not login!")
         else:
             user_id = int(request.POST["user_id"])
+            if User.objects.filter(id=user_id).count() <= 0:
+                raise InputError("invalid user id input")
             detail = str(request.POST["detail"])
             relevant_task_id = int(request.POST["relevant_task_id"])
+            if relevant_task_id != -1 and Task.objects.filter(id=relevant_task_id).count() <= 0:
+                raise InputError("invalid task id input")
             notification = Notification(receiver_id=user_id,
                                         category=0,
                                         comment_id=-1,
@@ -592,9 +596,8 @@ def get_history_comments(request):
                     comment_info["receiver_nickname"] = User.objects.get(id=item.receiver_id).nickname
                 comment_info["detail"] = item.detail
                 comment_info["time"] = str(item.release_time.strftime('%Y-%m-%d %H:%M'))
-                print(comment_info)
                 return_list.append(comment_info)
-            response["data_list"] = return_list
+            response["comment_list"] = return_list
             response["pages"] = pages
             response['msg'] = "success!"
             response['error'] = 0
