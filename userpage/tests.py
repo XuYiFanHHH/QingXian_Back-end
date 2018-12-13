@@ -613,9 +613,6 @@ class GetTaskTest(TestCase):
         self.assertEqual(task1["user_id"], user.id)
         self.assertEqual(task1["user_nickname"], user.nickname)
         self.assertEqual(task1["user_avatar"],user.avatar_url)
-        self.assertEqual(task1["pic"],
-                         "https://763850.iterator-traits.com" +
-                         "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         self.assertEqual(len(task1["pics"]), 0)
         self.assertEqual(task1["collect_num"], 0)
         self.assertEqual(task1["comment_num"], 0)
@@ -1177,9 +1174,6 @@ class GetTaskDetailTest(TestCase):
         self.assertEqual(error, 0)
         self.assertEqual(response_json["price"], "8000")
         self.assertEqual(len(response_json["pics"]), 1)
-        self.assertEqual(response_json["pics"][0],
-                         "https://763850.iterator-traits.com/showimage" +
-                         "/home/ubuntu/QingXian/media/picture/default_image.png")
         self.assertEqual(response_json["hasCollect"], 0)
 
         # 消息活动 有价格
@@ -1936,9 +1930,6 @@ class GetMyCollectionTest(TestCase):
         self.assertEqual(task2["title"], "出售笔记本电脑")
         self.assertEqual(task2["price"], "8000")
         self.assertEqual(task2["category"], "学习")
-        self.assertEqual(task2["pic"],
-                         "https://763850.iterator-traits.com" +
-                         "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         self.assertEqual(task2["collect_num"], 0)
         self.assertEqual(task2["comment_num"], 0)
 

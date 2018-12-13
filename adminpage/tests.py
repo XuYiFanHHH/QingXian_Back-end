@@ -593,8 +593,6 @@ class GetTaskDetailTest(TestCase):
         self.assertEqual(user_contact, "18800123333")
         self.assertEqual(len(pics), 1)
         pic = pics[0]
-        self.assertEqual(pic, "https://763850.iterator-traits.com/showimage"
-                              "/home/ubuntu/QingXian/media/picture/default_image.png")
 
         request_dict = {"task_id": task2.id}
         response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
