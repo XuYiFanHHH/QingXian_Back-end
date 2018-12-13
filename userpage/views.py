@@ -106,8 +106,6 @@ def get_user_info(request):
         response['credit'] = user.credit
         response['nickname'] = user.nickname
         avatar_url = user.avatar_url
-        if avatar_url.startswith("/home/"):
-            avatar_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + avatar_url
         response["avatar_url"] = avatar_url
         response["user_contact"] = user.contact_info
         response['msg'] = "success!"
@@ -217,9 +215,7 @@ def get_all_task(request):
             if len(pic_list) > 0:
                 pic_url = str(pic_list[0].picture_url)
             if len(pic_list) == 0 or pic_url == "":
-                pic_url = '%s/%s' % (PIC_SAVE_ROOT, "default_image.png")
-            if pic_url.startswith("/home/ubuntu"):
-                pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
+                pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + '%s/%s' % (PIC_SAVE_ROOT, "default_image.png")
             task["pic"] = pic_url
             task["collect_num"] = Collection.objects.filter(task_id=item.id).count()
             task["comment_num"] = Comment.objects.filter(task_id=item.id).count()
@@ -290,9 +286,7 @@ def get_all_collection(request):
             if len(pic_list) > 0:
                 pic_url = str(pic_list[0].picture_url)
             if len(pic_list) == 0 or pic_url == "":
-                pic_url = '%s/%s' % (PIC_SAVE_ROOT, "default_image.png")
-            if pic_url.startswith("/home/ubuntu"):
-                pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
+                pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + '%s/%s' % (PIC_SAVE_ROOT, "default_image.png")
             task["pic"] = pic_url
             task["collect_num"] = Collection.objects.filter(task_id=item.id).count()
             task["comment_num"] = Comment.objects.filter(task_id=item.id).count()
@@ -399,6 +393,7 @@ def upload_picture(request):
             with open(image_path, 'wb') as pic:
                 for c in file.chunks():
                     pic.write(c)
+            image_path = str(SITE_DOMAIN).rstrip("/") + "/showimage" + image_path
             response["pic_url"] = image_path
             response["index"] = index
             response["msg"] = "success"
@@ -536,8 +531,6 @@ def get_tasks(request):
             publisher = User.objects.get(id=item.user_id)
             task["user_nickname"] = publisher.nickname
             avatar_url = publisher.avatar_url
-            if avatar_url.startswith("/home/"):
-                avatar_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + avatar_url
             task["user_avatar"] = avatar_url
             # 第一张相关图片
             pic_list = Picture.objects.filter(task_id=item.id).order_by("id")
@@ -545,16 +538,14 @@ def get_tasks(request):
             if len(pic_list) > 0:
                 for pic in pic_list:
                     pic_url = pic.picture_url
-                    if pic_url.startswith("/home/ubuntu"):
-                        pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
                     if pic_url != "":
                         pic_url_list.append(pic_url)
             task["pics"] = pic_url_list
             if len(pic_url_list) > 0:
                 task["pic"] = pic_url_list[0]
             else:
-                pic_url = '%s/%s' % (PIC_SAVE_ROOT, "default_image.png")
-                task["pic"] = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
+                pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + '%s/%s' % (PIC_SAVE_ROOT, "default_image.png")
+                task["pic"] = pic_url
 
             task["collect_num"] = Collection.objects.filter(task_id=item.id).count()
             task["comment_num"] = Comment.objects.filter(task_id=item.id).count()
@@ -626,8 +617,6 @@ def get_task_detail(request):
         response["user_credit"] = publisher.credit
         response["nickname"] = publisher.nickname
         avatar_url = str(publisher.avatar_url)
-        if avatar_url.startswith("/home/"):
-            avatar_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + avatar_url
         response["avatar"] = avatar_url
         # 任务相关图片
         pic_list = Picture.objects.filter(task_id=task_id)
@@ -635,8 +624,6 @@ def get_task_detail(request):
         if len(pic_list) > 0:
             for pic in pic_list:
                 pic_url = pic.picture_url
-                if pic_url.startswith("/home/ubuntu"):
-                    pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
                 if pic_url != "":
                     pic_url_list.append(pic_url)
 
@@ -838,8 +825,6 @@ def get_notifications(request):
                 content = content[0:25] + "..."
             message["content"] = content
             avatar_url = str(relevant_user.avatar_url)
-            if avatar_url.startswith("/home/"):
-                avatar_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + avatar_url
             message["user_avatar_url"] = avatar_url
             # 第一张任务相关图片
             pic_list = Picture.objects.filter(task_id=task.id).order_by("id")
@@ -847,8 +832,6 @@ def get_notifications(request):
                 pic_url = str(pic_list[0].picture_url)
             if len(pic_list) == 0 or pic_url == "":
                 pic_url = ""
-            if pic_url.startswith("/home/ubuntu"):
-                pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
             message["task_image_url"] = pic_url
             # 计算提醒发送时间
             release_time = str(notice.release_time.strftime('%Y-%m-%d %H:%M'))

@@ -1,4 +1,5 @@
 from django.test import TestCase
+from QingXian.settings import *
 from wechat.models import *
 import json
 import time
@@ -11,7 +12,7 @@ class CheckSkeyTest(TestCase):
                             skey="654321",
                             nickname="1",
                             contact_info="18800123333",
-                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                            avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         self.request_url = "/userpage/check_skey"
 
     # 正确输入测试
@@ -47,7 +48,7 @@ class InsertUserTest(TestCase):
         User.objects.create(open_id="654321",
                             skey="654321",
                             nickname="1",
-                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                            avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         User.objects.create(open_id="123456",
                             skey="123456")
         self.request_url = "/userpage/insert_user"
@@ -95,15 +96,6 @@ class InsertUserTest(TestCase):
         error = response_json['error']
         self.assertEqual(error, 1)
 
-    # 重复nickname测试
-    def test_repeat_nickname_request(self):
-        request_dict = {"nickname": "1",
-                        "avatar_url": "/home/ubuntu/QingXian/media/picture/default_image.png",
-                        "skey": "123456"}
-        response = self.client.post(self.request_url, request_dict)
-        error = json.loads(response.content.decode())['error']
-        self.assertEqual(error, 1)
-
 
 # 测试返回用户信用分,用户信息,头像图片
 class GetUserInfoTest(TestCase):
@@ -112,13 +104,13 @@ class GetUserInfoTest(TestCase):
                             skey="654321",
                             nickname="1",
                             contact_info="18800123333",
-                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                            avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         User.objects.create(open_id="123456",
                             skey="123456",
                             nickname="2",
                             contact_info="18800122222",
                             credit=96,
-                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                            avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         self.request_url = "/userpage/user/get_user_info"
 
     # 正确输入测试
@@ -132,7 +124,7 @@ class GetUserInfoTest(TestCase):
         user_contact = response_json["user_contact"]
         self.assertEqual(error, 0)
         self.assertEqual(nickname, "2")
-        self.assertEqual(avatar_url, "http://763850.iterator-traits.com/showimage"
+        self.assertEqual(avatar_url, "https://763850.iterator-traits.com/showimage"
                                      "/home/ubuntu/QingXian/media/picture/default_image.png")
         self.assertEqual(credit, 96)
         self.assertEqual(user_contact, "18800122222")
@@ -221,16 +213,6 @@ class UpdateUserInfoTest(TestCase):
     def test_no_user_contact_request(self):
         request_dict = {"avatar_url": "/home/ubuntu/QingXian/media/picture/default_image.png",
                         "nickname": "2",
-                        "skey": "654321"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
-        error = response_json['error']
-        self.assertEqual(error, 1)
-
-    # 重复nickname测试
-    def test_repeat_nickname_request(self):
-        request_dict = {"nickname": "3",
-                        "user_contact": "23558121",
-                        "avatar_url": "/home/ubuntu/QingXian/media/picture/default_image.png",
                         "skey": "654321"}
         response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
         error = response_json['error']
@@ -402,7 +384,7 @@ class GetValidTaskNumberTest(TestCase):
                             skey="654321",
                             nickname="1",
                             contact_info="18800123333",
-                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                            avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         user = User.objects.get(open_id="654321")
         Task.objects.create(user_id=user.id,
                             user_credit=100,
@@ -515,12 +497,12 @@ class GetTaskTest(TestCase):
                             skey="654321",
                             nickname="1",
                             contact_info="18800123333",
-                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                            avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         User.objects.create(open_id="222",
                             skey="222",
                             nickname="2",
                             contact_info="18800000000",
-                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                            avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         user = User.objects.get(open_id="654321")
         task = Task.objects.create(user_id=user.id,
                                    user_credit=100,
@@ -534,7 +516,7 @@ class GetTaskTest(TestCase):
                                    contact_msg="请加我的微信",
                                    status=1)
 
-        Picture.objects.create(picture_url="/home/ubuntu/QingXian/media/picture/test.png",
+        Picture.objects.create(picture_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/test.png",
                                task_id=task.id,
                                feedback_id=-1)
 
@@ -630,10 +612,9 @@ class GetTaskTest(TestCase):
         self.assertEqual(task1["price"], "8000")
         self.assertEqual(task1["user_id"], user.id)
         self.assertEqual(task1["user_nickname"], user.nickname)
-        self.assertEqual(task1["user_avatar"],
-                         "http://763850.iterator-traits.com/showimage"+user.avatar_url)
+        self.assertEqual(task1["user_avatar"],user.avatar_url)
         self.assertEqual(task1["pic"],
-                         "http://763850.iterator-traits.com" +
+                         "https://763850.iterator-traits.com" +
                          "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         self.assertEqual(len(task1["pics"]), 0)
         self.assertEqual(task1["collect_num"], 0)
@@ -642,11 +623,11 @@ class GetTaskTest(TestCase):
         self.assertEqual(task1["hasCollect"], 0)
 
         self.assertEqual(task2["pic"],
-                         "http://763850.iterator-traits.com/showimage" +
+                         "https://763850.iterator-traits.com/showimage" +
                          "/home/ubuntu/QingXian/media/picture/test.png")
         self.assertEqual(len(task2["pics"]), 1)
         self.assertEqual(task2["pics"][0],
-                         "http://763850.iterator-traits.com/showimage" +
+                         "https://763850.iterator-traits.com/showimage" +
                          "/home/ubuntu/QingXian/media/picture/test.png")
         self.assertEqual(task2["collect_num"], 1)
         self.assertEqual(task2["comment_num"], 1)
@@ -1088,12 +1069,12 @@ class GetTaskDetailTest(TestCase):
                             skey="654321",
                             nickname="1",
                             contact_info="18800123333",
-                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                            avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         User.objects.create(open_id="222",
                             skey="222",
                             nickname="2",
                             contact_info="18800000000",
-                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                            avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         user = User.objects.get(open_id="654321")
         task = Task.objects.create(user_id=user.id,
                                    user_credit=100,
@@ -1107,7 +1088,7 @@ class GetTaskDetailTest(TestCase):
                                    contact_msg="请加我的微信",
                                    status=1)
 
-        Picture.objects.create(picture_url="/home/ubuntu/QingXian/media/picture/test.png",
+        Picture.objects.create(picture_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/test.png",
                                task_id=task.id,
                                feedback_id=-1)
 
@@ -1175,11 +1156,11 @@ class GetTaskDetailTest(TestCase):
         self.assertEqual(response_json["user_credit"], 100)
         self.assertEqual(response_json["nickname"], "1")
         self.assertEqual(response_json["avatar"],
-                         "http://763850.iterator-traits.com/showimage"+
+                         "https://763850.iterator-traits.com/showimage"+
                          "/home/ubuntu/QingXian/media/picture/default_image.png")
         self.assertEqual(len(response_json["pics"]), 1)
         self.assertEqual(response_json["pics"][0],
-                         "http://763850.iterator-traits.com/showimage" +
+                         "https://763850.iterator-traits.com/showimage" +
                          "/home/ubuntu/QingXian/media/picture/test.png")
         self.assertEqual(len(response_json["comment_list"]), 1)
         comment = response_json["comment_list"][0]
@@ -1197,7 +1178,7 @@ class GetTaskDetailTest(TestCase):
         self.assertEqual(response_json["price"], "8000")
         self.assertEqual(len(response_json["pics"]), 1)
         self.assertEqual(response_json["pics"][0],
-                         "http://763850.iterator-traits.com/showimage" +
+                         "https://763850.iterator-traits.com/showimage" +
                          "/home/ubuntu/QingXian/media/picture/default_image.png")
         self.assertEqual(response_json["hasCollect"], 0)
 
@@ -1249,12 +1230,12 @@ class GetPublisherContactTest(TestCase):
                             skey="654321",
                             nickname="1",
                             contact_info="18800123333",
-                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                            avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         User.objects.create(open_id="222",
                             skey="222",
                             nickname="2",
                             contact_info="18800000000",
-                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                            avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         user = User.objects.get(open_id="654321")
         Task.objects.create(user_id=user.id,
                             user_credit=100,
@@ -1324,12 +1305,12 @@ class CommentTest(TestCase):
                             skey="654321",
                             nickname="1",
                             contact_info="18800123333",
-                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                            avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         User.objects.create(open_id="222",
                             skey="222",
                             nickname="2",
                             contact_info="18800000000",
-                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                            avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         user = User.objects.get(open_id="654321")
         Task.objects.create(user_id=user.id,
                             user_credit=100,
@@ -1421,12 +1402,12 @@ class CollectTest(TestCase):
                             skey="654321",
                             nickname="1",
                             contact_info="18800123333",
-                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                            avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         User.objects.create(open_id="222",
                             skey="222",
                             nickname="2",
                             contact_info="18800000000",
-                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                            avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         user = User.objects.get(open_id="654321")
         task = Task.objects.create(user_id=user.id,
                                    user_credit=100,
@@ -1489,12 +1470,12 @@ class GetNotificationsTest(TestCase):
                             skey="654321",
                             nickname="1",
                             contact_info="18800123333",
-                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                            avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         User.objects.create(open_id="222",
                             skey="222",
                             nickname="2",
                             contact_info="18800000000",
-                            avatar_url="/home/ubuntu/QingXian/media/picture/test.png")
+                            avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/test.png")
         user = User.objects.get(open_id="654321")
 
         task = Task.objects.create(user_id=user.id,
@@ -1556,11 +1537,11 @@ class GetNotificationsTest(TestCase):
         else:
             right = 0
         self.assertEqual(right, 1)
-        avatar_url = "http://763850.iterator-traits.com/showimage/home/ubuntu/QingXian/media/picture/test.png"
+        avatar_url = "https://763850.iterator-traits.com/showimage/home/ubuntu/QingXian/media/picture/test.png"
         self.assertEqual(notice["user_avatar_url"],avatar_url)
         self.assertEqual(notice["task_image_url"], "")
 
-        Picture.objects.create(picture_url="/home/ubuntu/QingXian/media/picture/test.png",
+        Picture.objects.create(picture_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/test.png",
                                task_id=task.id,
                                feedback_id=-1)
         response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
@@ -1568,7 +1549,7 @@ class GetNotificationsTest(TestCase):
         self.assertEqual(error, 0)
         user_notices = response_json['user_notice_list']
         notice = user_notices[0]
-        image_url = "http://763850.iterator-traits.com/showimage/home/ubuntu/QingXian/media/picture/test.png"
+        image_url = "https://763850.iterator-traits.com/showimage/home/ubuntu/QingXian/media/picture/test.png"
         self.assertEqual(notice["task_image_url"], image_url)
 
     # 测试无效的skey输入
@@ -1609,7 +1590,7 @@ class GetSystemNotificationsTest(TestCase):
                             skey="654321",
                             nickname="1",
                             contact_info="18800123333",
-                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                            avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
 
         task = Task.objects.create(user_id=user.id,
                                    user_credit=100,
@@ -1690,13 +1671,13 @@ class GetMyCollectionTest(TestCase):
                             skey="654321",
                             nickname="1",
                             contact_info="18800123333",
-                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                            avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
 
         test_user = User.objects.create(open_id="222",
                             skey="222",
                             nickname="2",
                             contact_info="18800000000",
-                            avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                            avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
 
         task1 = Task.objects.create(user_id=user.id,
                                     user_credit=100,
@@ -1710,7 +1691,7 @@ class GetMyCollectionTest(TestCase):
                                     contact_msg="请加我的微信",
                                     status=1)
 
-        Picture.objects.create(picture_url="/home/ubuntu/QingXian/media/picture/test.png",
+        Picture.objects.create(picture_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/test.png",
                                task_id=task1.id,
                                feedback_id=-1)
 
@@ -1782,13 +1763,13 @@ class GetMyCollectionTest(TestCase):
         self.assertEqual(task2["category"], "学习")
         self.assertEqual(task2["status"], 2)
         self.assertEqual(task2["pic"],
-                         "http://763850.iterator-traits.com" +
+                         "https://763850.iterator-traits.com" +
                          "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         self.assertEqual(task2["collect_num"], 1)
         self.assertEqual(task2["comment_num"], 0)
 
         self.assertEqual(task1["pic"],
-                         "http://763850.iterator-traits.com/showimage" +
+                         "https://763850.iterator-traits.com/showimage" +
                          "/home/ubuntu/QingXian/media/picture/test.png")
         self.assertEqual(task1["price"], "面议")
 
@@ -1882,7 +1863,7 @@ class GetMyCollectionTest(TestCase):
                                     skey="222",
                                     nickname="1",
                                     contact_info="18800123333",
-                                    avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                                    avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
 
         task2 = Task.objects.create(user_id=user.id,
                                     user_credit=100,
@@ -1908,7 +1889,7 @@ class GetMyCollectionTest(TestCase):
                                     contact_msg="请加我的微信",
                                     status=1)
 
-        Picture.objects.create(picture_url="/home/ubuntu/QingXian/media/picture/test.png",
+        Picture.objects.create(picture_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/test.png",
                                task_id=task1.id,
                                feedback_id=-1)
 
@@ -1956,13 +1937,13 @@ class GetMyCollectionTest(TestCase):
         self.assertEqual(task2["price"], "8000")
         self.assertEqual(task2["category"], "学习")
         self.assertEqual(task2["pic"],
-                         "http://763850.iterator-traits.com" +
+                         "https://763850.iterator-traits.com" +
                          "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         self.assertEqual(task2["collect_num"], 0)
         self.assertEqual(task2["comment_num"], 0)
 
         self.assertEqual(task1["pic"],
-                         "http://763850.iterator-traits.com/showimage" +
+                         "https://763850.iterator-traits.com/showimage" +
                          "/home/ubuntu/QingXian/media/picture/test.png")
         self.assertEqual(task1["price"], "面议")
 
@@ -1994,7 +1975,7 @@ class GetMyCollectionTest(TestCase):
                                    skey="654321",
                                    nickname="2",
                                    contact_info="18800333333",
-                                   avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                                   avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
 
         request_dict = {"skey": "654321",
                         "status": 0,
@@ -2080,7 +2061,7 @@ class FeedbackTest(TestCase):
                                    skey="222",
                                    nickname="1",
                                    contact_info="18800123333",
-                                   avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                                   avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
 
         self.request_url = "/userpage/user/feedback"
 

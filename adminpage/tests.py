@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from wechat.models import Task, Picture, Comment, Feedback, Collection, Notification
+from QingXian.settings import *
 from wechat.models import User as WechatUser
 import json
 
@@ -80,13 +81,13 @@ class GetAllTaskTest(TestCase):
                                          skey="111",
                                          nickname="1",
                                          contact_info="18800123333",
-                                         avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                                         avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
 
         user2 = WechatUser.objects.create(open_id="222",
                                           skey="222",
                                           nickname="2",
                                           contact_info="哈哈哈哈我的手机号码是！！！！！：：：：18800123333",
-                                          avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                                          avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
 
         task4 = Task.objects.create(user_id=user.id,
                                     user_credit=100,
@@ -485,13 +486,13 @@ class GetTaskDetailTest(TestCase):
                                          skey="111",
                                          nickname="1",
                                          contact_info="18800123333",
-                                         avatar_url="/home/ubuntu/QingXian/media/picture/default_image1.png")
+                                         avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image1.png")
 
         user2 = WechatUser.objects.create(open_id="222",
                                           skey="222",
                                           nickname="2",
                                           contact_info="哈哈哈哈我的手机号码是！！！！！：：：：18800123333",
-                                          avatar_url="/home/ubuntu/QingXian/media/picture/default_image2.png")
+                                          avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image2.png")
 
         task1 = Task.objects.create(user_id=user.id,
                                     user_credit=100,
@@ -517,7 +518,7 @@ class GetTaskDetailTest(TestCase):
                                     contact_msg="请加我的微信",
                                     status=1)
 
-        Picture.objects.create(picture_url="/home/ubuntu/QingXian/media/picture/test.png",
+        Picture.objects.create(picture_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/test.png",
                                task_id=task2.id,
                                feedback_id=-1)
 
@@ -586,13 +587,13 @@ class GetTaskDetailTest(TestCase):
         self.assertEqual(status, "待审核")
         self.assertEqual(notice, "请加我的微信")
         self.assertEqual(nickname, "1")
-        self.assertEqual(avatar_url, "http://763850.iterator-traits.com/showimage"
+        self.assertEqual(avatar_url, "https://763850.iterator-traits.com/showimage"
                                      "/home/ubuntu/QingXian/media/picture/default_image1.png")
         self.assertEqual(credit, 100)
         self.assertEqual(user_contact, "18800123333")
         self.assertEqual(len(pics), 1)
         pic = pics[0]
-        self.assertEqual(pic, "http://763850.iterator-traits.com/showimage"
+        self.assertEqual(pic, "https://763850.iterator-traits.com/showimage"
                               "/home/ubuntu/QingXian/media/picture/default_image.png")
 
         request_dict = {"task_id": task2.id}
@@ -604,7 +605,7 @@ class GetTaskDetailTest(TestCase):
         pics = response_json["pics"]
         self.assertEqual(len(pics), 1)
         pic = pics[0]
-        self.assertEqual(pic, "http://763850.iterator-traits.com/showimage"
+        self.assertEqual(pic, "https://763850.iterator-traits.com/showimage"
                               "/home/ubuntu/QingXian/media/picture/test.png")
 
         request_dict = {"task_id": task3.id}
@@ -652,13 +653,13 @@ class GetCommentsTest(TestCase):
                                          skey="111",
                                          nickname="1",
                                          contact_info="18800123333",
-                                         avatar_url="/home/ubuntu/QingXian/media/picture/default_image1.png")
+                                         avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image1.png")
 
         user2 = WechatUser.objects.create(open_id="222",
                                           skey="222",
                                           nickname="2",
                                           contact_info="哈哈哈哈我的手机号码是！！！！！：：：：18800123333",
-                                          avatar_url="/home/ubuntu/QingXian/media/picture/default_image2.png")
+                                          avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image2.png")
 
         task1 = Task.objects.create(user_id=user.id,
                                     user_credit=100,
@@ -775,7 +776,7 @@ class TaskCheckTest(TestCase):
                                          skey="111",
                                          nickname="1",
                                          contact_info="18800123333",
-                                         avatar_url="/home/ubuntu/QingXian/media/picture/default_image1.png")
+                                         avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image1.png")
 
         task1 = Task.objects.create(user_id=user.id,
                                     user_credit=100,
@@ -944,7 +945,7 @@ class TaskChangeCategoryTest(TestCase):
                                          skey="111",
                                          nickname="1",
                                          contact_info="18800123333",
-                                         avatar_url="/home/ubuntu/QingXian/media/picture/default_image1.png")
+                                         avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image1.png")
 
         task1 = Task.objects.create(user_id=user.id,
                                     user_credit=100,
@@ -1033,13 +1034,13 @@ class DeleteCommentTest(TestCase):
                                          skey="111",
                                          nickname="1",
                                          contact_info="18800123333",
-                                         avatar_url="/home/ubuntu/QingXian/media/picture/default_image1.png")
+                                         avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image1.png")
 
         user2 = WechatUser.objects.create(open_id="222",
                                           skey="222",
                                           nickname="2",
                                           contact_info="哈哈哈哈我的手机号码是！！！！！：：：：18800123333",
-                                          avatar_url="/home/ubuntu/QingXian/media/picture/default_image2.png")
+                                          avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image2.png")
 
         task1 = Task.objects.create(user_id=user.id,
                                     user_credit=100,
@@ -1135,13 +1136,13 @@ class GetUserListTest(TestCase):
                                           nickname="1",
                                           contact_info="18800123333",
                                           credit=96,
-                                          avatar_url="/home/ubuntu/QingXian/media/picture/default_image1.png")
+                                          avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image1.png")
         user2 = WechatUser.objects.create(open_id="222",
                                           skey="222",
                                           nickname="2",
                                           contact_info="18800000000",
                                           credit=100,
-                                          avatar_url="/home/ubuntu/QingXian/media/picture/default_image2.png")
+                                          avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image2.png")
 
         task = Task.objects.create(user_id=user1.id,
                                    user_credit=96,
@@ -1187,7 +1188,7 @@ class GetUserListTest(TestCase):
         self.assertEqual(user1["nickname"], "1")
         self.assertEqual(user1["user_contact"], "18800123333")
         self.assertEqual(user1["avatar_url"],
-                         "http://763850.iterator-traits.com/showimage"
+                         "https://763850.iterator-traits.com/showimage"
                          "/home/ubuntu/QingXian/media/picture/default_image1.png")
         self.assertEqual(user1["credit"], 96)
         self.assertEqual(user1["task_num"], 1)
@@ -1312,13 +1313,13 @@ class GetUserDetailTest(TestCase):
                                           nickname="1",
                                           contact_info="18800123333",
                                           credit=96,
-                                          avatar_url="/home/ubuntu/QingXian/media/picture/default_image1.png")
+                                          avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image1.png")
         user2 = WechatUser.objects.create(open_id="222",
                                           skey="222",
                                           nickname="2",
                                           contact_info="18800000000",
                                           credit=100,
-                                          avatar_url="/home/ubuntu/QingXian/media/picture/default_image2.png")
+                                          avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image2.png")
 
         task = Task.objects.create(user_id=user1.id,
                                    user_credit=96,
@@ -1358,7 +1359,7 @@ class GetUserDetailTest(TestCase):
         self.assertEqual(user1["nickname"], "1")
         self.assertEqual(user1["user_contact"], "18800123333")
         self.assertEqual(user1["avatar_url"],
-                         "http://763850.iterator-traits.com/showimage"
+                         "https://763850.iterator-traits.com/showimage"
                          "/home/ubuntu/QingXian/media/picture/default_image1.png")
         self.assertEqual(user1["credit"], 96)
         self.assertEqual(user1["task_num"], 1)
@@ -1405,13 +1406,13 @@ class GetMyAllTaskTest(TestCase):
                                          skey="111",
                                          nickname="1",
                                          contact_info="18800123333",
-                                         avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                                         avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
 
         user2 = WechatUser.objects.create(open_id="222",
                                           skey="222",
                                           nickname="2",
                                           contact_info="哈哈哈哈我的手机号码是！！！！！：：：：18800123333",
-                                          avatar_url="/home/ubuntu/QingXian/media/picture/default_image.png")
+                                          avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
 
         task4 = Task.objects.create(user_id=user.id,
                                     user_credit=100,
@@ -1549,13 +1550,13 @@ class GetHistoryCommentsTest(TestCase):
                                          skey="111",
                                          nickname="1",
                                          contact_info="18800123333",
-                                         avatar_url="/home/ubuntu/QingXian/media/picture/default_image1.png")
+                                         avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image1.png")
 
         user2 = WechatUser.objects.create(open_id="222",
                                           skey="222",
                                           nickname="2",
                                           contact_info="哈哈哈哈我的手机号码是！！！！！：：：：18800123333",
-                                          avatar_url="/home/ubuntu/QingXian/media/picture/default_image2.png")
+                                          avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image2.png")
 
         task1 = Task.objects.create(user_id=user.id,
                                     user_credit=100,
@@ -1678,7 +1679,7 @@ class SendMsgTest(TestCase):
                                          skey="111",
                                          nickname="1",
                                          contact_info="18800123333",
-                                         avatar_url="/home/ubuntu/QingXian/media/picture/default_image1.png")
+                                         avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image1.png")
 
         task1 = Task.objects.create(user_id=user.id,
                                     user_credit=100,

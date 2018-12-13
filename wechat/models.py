@@ -6,7 +6,7 @@ import django.utils.timezone as timezone
 # 用户表
 class User(models.Model):
     open_id = models.CharField(max_length=64, unique=True, db_index=True)
-    nickname = models.CharField(max_length=32, unique=True)
+    nickname = models.CharField(max_length=32)
     skey = models.CharField(max_length=256)
     avatar_url = models.CharField(max_length=256)
     credit = models.IntegerField(default=100)

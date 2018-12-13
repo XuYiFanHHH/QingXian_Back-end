@@ -177,8 +177,6 @@ def get_task_detail(request):
             user = User.objects.get(id=task.user_id)
             response["nickname"] = user.nickname
             avatar_url = user.avatar_url
-            if avatar_url.startswith("/home/"):
-                avatar_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + avatar_url
             response["avatar_url"] = avatar_url
             response["credit"] = user.credit
             response["user_contact"] = user.contact_info
@@ -188,8 +186,6 @@ def get_task_detail(request):
             if len(pic_list) > 0:
                 for pic in pic_list:
                     pic_url = pic.picture_url
-                    if pic_url.startswith("/home/ubuntu"):
-                        pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url
                     if pic_url != "":
                         pic_url_list.append(pic_url)
             else:
@@ -413,8 +409,6 @@ def get_user_list(request):
                 info["nickname"] = user.nickname
                 info["user_contact"] = user.contact_info
                 avatar_url = user.avatar_url
-                if avatar_url.startswith("/home/"):
-                    avatar_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + avatar_url
                 info["avatar_url"] = avatar_url
                 info["credit"] = user.credit
                 info["task_num"] = Task.objects.filter(user_id=user.id).count()
@@ -447,8 +441,6 @@ def get_user_detail(request):
             response["nickname"] = user.nickname
             response["user_contact"] = user.contact_info
             avatar_url = user.avatar_url
-            if avatar_url.startswith("/home/"):
-                avatar_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + avatar_url
             response["avatar_url"] = avatar_url
             response["credit"] = user.credit
             response["task_num"] = Task.objects.filter(user_id=user.id).count()

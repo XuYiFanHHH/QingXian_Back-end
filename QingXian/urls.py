@@ -22,5 +22,5 @@ urlpatterns = [
     path('userpage/', include('userpage.urls')),
     path('admin/', admin.site.urls),
     path('crossDomain/adminpage/', include('adminpage.urls')),
-    re_path(r'showimage/.*', show_image)
+    re_path(r'showimage/.*', show_image),
 ]
