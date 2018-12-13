@@ -18,7 +18,7 @@ class CheckSkeyTest(TestCase):
     # 正确输入测试
     def test_proper_request(self):
         request_dict = {"skey": "654321"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         valid = response_json['valid']
@@ -27,7 +27,7 @@ class CheckSkeyTest(TestCase):
     # 测试不存在的skey输入
     def test_invalid_skey_request(self):
         request_dict = {"skey": "123456"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         valid = response_json['valid']
@@ -36,7 +36,7 @@ class CheckSkeyTest(TestCase):
     # 测试无skey输入
     def test_no_skey_request(self):
         request_dict = {}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -58,7 +58,7 @@ class InsertUserTest(TestCase):
         request_dict = {"nickname": "2",
                         "avatar_url": "/home/ubuntu/QingXian/media/picture/default_image.png",
                         "skey": "123456"}
-        response = self.client.post(self.request_url, request_dict)
+        response = self.client.post(self.request_url, request_dict, secure=True)
         error = json.loads(response.content.decode())['error']
         self.assertEqual(error, 0)
 
@@ -67,7 +67,7 @@ class InsertUserTest(TestCase):
         request_dict = {"nickname": "2",
                         "avatar_url": "/home/ubuntu/QingXian/media/picture/default_image.png",
                         "skey": "222"}
-        response = self.client.post(self.request_url, request_dict)
+        response = self.client.post(self.request_url, request_dict, secure=True)
         error = json.loads(response.content.decode())['error']
         self.assertEqual(error, 1)
 
@@ -76,7 +76,7 @@ class InsertUserTest(TestCase):
         request_dict = {"nickname": "2",
                         "avatar_url": "/home/ubuntu/QingXian/media/picture/default_image.png"
                         }
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -84,7 +84,7 @@ class InsertUserTest(TestCase):
     def test_no_nickname_request(self):
         request_dict = {"avatar_url": "/home/ubuntu/QingXian/media/picture/default_image.png",
                         "skey": "654321"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -92,7 +92,7 @@ class InsertUserTest(TestCase):
     def test_no_avatar_request(self):
         request_dict = {"nickname": "2",
                         "skey": "654321"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -116,7 +116,7 @@ class GetUserInfoTest(TestCase):
     # 正确输入测试
     def test_proper_request(self):
         request_dict = {"skey": "123456"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         nickname = response_json["nickname"]
         avatar_url = response_json["avatar_url"]
@@ -132,14 +132,14 @@ class GetUserInfoTest(TestCase):
     # 测试不存在的skey输入
     def test_invalid_skey_request(self):
         request_dict = {"skey": "2222"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
     # 测试无skey输入
     def test_no_skey_request(self):
         request_dict = {}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -164,7 +164,7 @@ class UpdateUserInfoTest(TestCase):
                         "avatar_url": "/home/ubuntu/QingXian/media/picture/default_image.png",
                         "skey": "654321",
                         "user_contact": "23558121"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         user = User.objects.get(skey="654321")
         self.assertEqual(user.nickname, "2")
@@ -178,7 +178,7 @@ class UpdateUserInfoTest(TestCase):
                         "avatar_url": "/home/ubuntu/QingXian/media/picture/default_image.png",
                         "user_contact": "23558121",
                         "skey": "222"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -187,7 +187,7 @@ class UpdateUserInfoTest(TestCase):
         request_dict = {"nickname": "2",
                         "avatar_url": "/home/ubuntu/QingXian/media/picture/default_image.png",
                         "user_contact": "23558121"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -196,7 +196,7 @@ class UpdateUserInfoTest(TestCase):
         request_dict = {"avatar_url": "/home/ubuntu/QingXian/media/picture/default_image.png",
                         "user_contact": "23558121",
                         "skey": "654321"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -205,7 +205,7 @@ class UpdateUserInfoTest(TestCase):
         request_dict = {"nickname": "2",
                         "user_contact": "23558121",
                         "skey": "654321"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -214,7 +214,7 @@ class UpdateUserInfoTest(TestCase):
         request_dict = {"avatar_url": "/home/ubuntu/QingXian/media/picture/default_image.png",
                         "nickname": "2",
                         "skey": "654321"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -234,7 +234,7 @@ class UserFeedbackRequest(TestCase):
         request_dict = {"detail": "nothing",
                         "pics": "",
                         "skey": "654321"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         afterward_length = Feedback.objects.all().count()
@@ -249,7 +249,7 @@ class UserFeedbackRequest(TestCase):
         request_dict = {"detail": "nothing",
                         "pics": "",
                         "skey": "222"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -257,7 +257,7 @@ class UserFeedbackRequest(TestCase):
     def test_no_skey_request(self):
         request_dict = {"detail": "nothing",
                         "pics": ""}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -265,7 +265,7 @@ class UserFeedbackRequest(TestCase):
     def test_no_pics_request(self):
         request_dict = {"detail": "nothing",
                         "skey": "654321"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -273,7 +273,7 @@ class UserFeedbackRequest(TestCase):
     def test_no_detail_request(self):
         request_dict = {"skey": "654321",
                         "pics": ""}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -298,7 +298,7 @@ class CreateTaskRequest(TestCase):
                         "pics": None,
                         "notice": "请加我的微信",
                         "skey": "654321"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         length = Task.objects.all().count()
@@ -326,7 +326,7 @@ class CreateTaskRequest(TestCase):
                         "pics": ["/home/ubuntu/QingXian/media/picture/default_image.png"],
                         "notice": "请加我的微信",
                         "skey": "654321"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         length = Task.objects.all().count()
@@ -358,7 +358,7 @@ class CreateTaskRequest(TestCase):
                         "pics": None,
                         "notice": "请加我的微信",
                         "skey": "222"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -372,7 +372,7 @@ class CreateTaskRequest(TestCase):
                         "price": 8000,
                         "pics": None,
                         "notice": "请加我的微信"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -436,7 +436,7 @@ class GetValidTaskNumberTest(TestCase):
     def test_proper_request(self):
         request_dict = {"skey": "654321",
                         "goods_or_activity": 0}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         valid = response_json['number']
@@ -444,7 +444,7 @@ class GetValidTaskNumberTest(TestCase):
 
         request_dict = {"skey": "654321",
                         "goods_or_activity": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         valid = response_json['number']
@@ -454,24 +454,24 @@ class GetValidTaskNumberTest(TestCase):
     def test_invalid_skey_request(self):
         request_dict = {"skey": "123456",
                         "goods_or_activity": 0}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
         request_dict = {"skey": "123456",
                         "goods_or_activity": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
     # 测试无skey输入
     def test_no_skey_request(self):
         request_dict = {"goods_or_activity": 0}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
         request_dict = {"goods_or_activity": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -479,13 +479,13 @@ class GetValidTaskNumberTest(TestCase):
     def test_invalid_request(self):
         request_dict = {"skey": "654321",
                         "goods_or_activity": -1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
         request_dict = {"skey": "654321",
                         "goods_or_activity": 2}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -598,7 +598,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -645,7 +645,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -664,7 +664,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -677,7 +677,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -691,7 +691,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -705,7 +705,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -720,7 +720,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -733,7 +733,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -747,7 +747,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -760,7 +760,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -774,7 +774,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -787,7 +787,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -803,7 +803,7 @@ class GetTaskTest(TestCase):
                         "select_index": 1,
                         "sort_index": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -817,7 +817,7 @@ class GetTaskTest(TestCase):
                         "select_index": 2,
                         "sort_index": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -832,7 +832,7 @@ class GetTaskTest(TestCase):
                         "select_index": 1,
                         "sort_index": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -846,7 +846,7 @@ class GetTaskTest(TestCase):
                         "select_index": 2,
                         "sort_index": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -861,7 +861,7 @@ class GetTaskTest(TestCase):
                         "select_index": -1,
                         "sort_index": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -875,7 +875,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 1,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -890,7 +890,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 1,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -906,7 +906,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 2,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -921,7 +921,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 2,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -937,7 +937,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 3,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -952,7 +952,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 3,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -964,7 +964,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 4,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['data_list']
@@ -979,7 +979,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 4,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -992,7 +992,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1004,7 +1004,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1017,7 +1017,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1028,7 +1028,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1041,7 +1041,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 0,
                         "page": 0}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(len(response_json['data_list']), 0)
@@ -1053,7 +1053,7 @@ class GetTaskTest(TestCase):
                         "select_index": 0,
                         "sort_index": 0,
                         "page": 2}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(len(response_json['data_list']), 0)
@@ -1144,7 +1144,7 @@ class GetTaskDetailTest(TestCase):
         # 商品 有评论 有图片 收藏
         request_dict = {"skey": "222",
                         "task_id": task1.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["title"], "求购笔记本电脑")
@@ -1169,7 +1169,7 @@ class GetTaskDetailTest(TestCase):
         # 商品 无上传图片，无评论 未收藏
         request_dict = {"skey": "222",
                         "task_id": task2.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["price"], "8000")
@@ -1179,7 +1179,7 @@ class GetTaskDetailTest(TestCase):
         # 消息活动 有价格
         request_dict = {"skey": "222",
                         "task_id": task3.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["price"], "不高于59元/场")
@@ -1187,7 +1187,7 @@ class GetTaskDetailTest(TestCase):
         # 消息活动 无价格
         request_dict = {"skey": "222",
                         "task_id": task4.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["price"], "无价位要求")
@@ -1196,7 +1196,7 @@ class GetTaskDetailTest(TestCase):
     def test_invalid_taskid_request(self):
         request_dict = {"skey": "222",
                         "task_id": 100}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1207,12 +1207,12 @@ class GetTaskDetailTest(TestCase):
         task1 = Task.objects.get(label="求购")
         request_dict = {"skey": "2333",
                         "task_id": task1.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
         request_dict = {"task_id": task1.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1250,7 +1250,7 @@ class GetPublisherContactTest(TestCase):
         # 商品 有评论 有图片 收藏
         request_dict = {"skey": "222",
                         "task_id": task.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["user_contact"], "18800123333")
@@ -1266,7 +1266,7 @@ class GetPublisherContactTest(TestCase):
     def test_invalid_taskid_request(self):
         request_dict = {"skey": "222",
                         "task_id": 100}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1275,19 +1275,19 @@ class GetPublisherContactTest(TestCase):
         task1 = Task.objects.get(label="求购")
         request_dict = {"skey": "2333",
                         "task_id": task1.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
         # 是自己发布的任务
         request_dict = {"skey": "654321",
                         "task_id": task1.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
         request_dict = {"task_id": task1.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1328,7 +1328,7 @@ class CommentTest(TestCase):
                         "task_id": task.id,
                         "receiver_id": -1,
                         "detail": "我有一台！"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(Comment.objects.all().count(), 1)
@@ -1346,7 +1346,7 @@ class CommentTest(TestCase):
                         "task_id": task.id,
                         "receiver_id": user.id,
                         "detail": "我有一台！"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(Comment.objects.all().count(), 2)
@@ -1366,7 +1366,7 @@ class CommentTest(TestCase):
                         "task_id": 100,
                         "receiver_id": -1,
                         "detail": "我有一台！"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1377,14 +1377,14 @@ class CommentTest(TestCase):
                         "task_id": task1.id,
                         "receiver_id": -1,
                         "detail": "我有一台！"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
         request_dict = {"task_id": task1.id,
                         "receiver_id": -1,
                         "detail": "我有一台！"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1427,7 +1427,7 @@ class CollectTest(TestCase):
         request_dict = {"skey": "222",
                         "task_id": task.id,
                         "collect_id": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["hasCollect"], 0)
@@ -1435,7 +1435,7 @@ class CollectTest(TestCase):
         request_dict = {"skey": "222",
                         "task_id": task.id,
                         "collect_id": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["hasCollect"], 1)
@@ -1446,13 +1446,13 @@ class CollectTest(TestCase):
         request_dict = {"skey": "2333",
                         "task_id": task1.id,
                         "collect_id": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
         request_dict = {"task_id": task1.id,
                         "collect_id": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1515,7 +1515,7 @@ class GetNotificationsTest(TestCase):
         task = Task.objects.get(label="求购")
         request_dict = {"skey": "654321",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["system_notice_count"], 1)
@@ -1538,7 +1538,7 @@ class GetNotificationsTest(TestCase):
         Picture.objects.create(picture_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/test.png",
                                task_id=task.id,
                                feedback_id=-1)
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         user_notices = response_json['user_notice_list']
@@ -1551,12 +1551,12 @@ class GetNotificationsTest(TestCase):
         task1 = Task.objects.get(label="求购")
         request_dict = {"skey": "2333",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
         request_dict = {"page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1564,14 +1564,14 @@ class GetNotificationsTest(TestCase):
     def test_invalid_page_request(self):
         request_dict = {"skey": "654321",
                         "page": 0}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(len(response_json['user_notice_list']), 0)
 
         request_dict = {"skey": "654321",
                         "page": 2}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(len(response_json['user_notice_list']), 0)
@@ -1617,7 +1617,7 @@ class GetSystemNotificationsTest(TestCase):
         task = Task.objects.get(label="求购")
         request_dict = {"skey": "654321",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         notices = response_json['notice_list']
@@ -1632,12 +1632,12 @@ class GetSystemNotificationsTest(TestCase):
         task1 = Task.objects.get(label="求购")
         request_dict = {"skey": "2333",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
         request_dict = {"page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1645,14 +1645,14 @@ class GetSystemNotificationsTest(TestCase):
     def test_invalid_page_request(self):
         request_dict = {"skey": "654321",
                         "page": 0}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(len(response_json['notice_list']), 0)
 
         request_dict = {"skey": "654321",
                         "page": 2}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(len(response_json['notice_list']), 0)
@@ -1744,7 +1744,7 @@ class GetMyCollectionTest(TestCase):
         request_dict = {"skey": "222",
                         "goods_or_activity": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['task_list']
@@ -1771,7 +1771,7 @@ class GetMyCollectionTest(TestCase):
         request_dict = {"skey": "222",
                         "goods_or_activity": 1,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['task_list']
@@ -1785,7 +1785,7 @@ class GetMyCollectionTest(TestCase):
         request_dict = {"skey": "654321",
                         "goods_or_activity": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['task_list']
@@ -1794,7 +1794,7 @@ class GetMyCollectionTest(TestCase):
         request_dict = {"skey": "654321",
                         "goods_or_activity": 1,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['task_list']
@@ -1805,13 +1805,13 @@ class GetMyCollectionTest(TestCase):
         request_dict = {"skey": "2333",
                         "goods_or_activity": 1,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
         # 测试无skey输入
         request_dict = {"goods_or_activity": 1,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1820,14 +1820,14 @@ class GetMyCollectionTest(TestCase):
         request_dict = {"skey": "222",
                         "goods_or_activity": -1,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
         request_dict = {"skey": "222",
                         "goods_or_activity": 2,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1836,7 +1836,7 @@ class GetMyCollectionTest(TestCase):
         request_dict = {"skey": "222",
                         "goods_or_activity": 0,
                         "page": 0}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(len(response_json['task_list']), 0)
@@ -1844,7 +1844,7 @@ class GetMyCollectionTest(TestCase):
         request_dict = {"skey": "222",
                         "goods_or_activity": 1,
                         "page": 2}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(len(response_json['task_list']), 0)
@@ -1918,7 +1918,7 @@ class GetMyCollectionTest(TestCase):
         request_dict = {"skey": "222",
                         "status": 1,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['task_list']
@@ -1942,7 +1942,7 @@ class GetMyCollectionTest(TestCase):
         request_dict = {"skey": "222",
                         "status": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['task_list']
@@ -1953,7 +1953,7 @@ class GetMyCollectionTest(TestCase):
         request_dict = {"skey": "222",
                         "status": 2,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['task_list']
@@ -1971,7 +1971,7 @@ class GetMyCollectionTest(TestCase):
         request_dict = {"skey": "654321",
                         "status": 0,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['task_list']
@@ -1980,7 +1980,7 @@ class GetMyCollectionTest(TestCase):
         request_dict = {"skey": "654321",
                         "status": 1,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['task_list']
@@ -1989,7 +1989,7 @@ class GetMyCollectionTest(TestCase):
         request_dict = {"skey": "654321",
                         "status": 2,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         data_list = response_json['task_list']
@@ -2000,13 +2000,13 @@ class GetMyCollectionTest(TestCase):
         request_dict = {"skey": "2333",
                         "status": 1,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
         # 测试无skey输入
         request_dict = {"status": 1,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -2015,14 +2015,14 @@ class GetMyCollectionTest(TestCase):
         request_dict = {"skey": "222",
                         "status": -1,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
         request_dict = {"skey": "222",
                         "status": 3,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -2031,7 +2031,7 @@ class GetMyCollectionTest(TestCase):
         request_dict = {"skey": "222",
                         "status": 0,
                         "page": 0}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(len(response_json['task_list']), 0)
@@ -2039,7 +2039,7 @@ class GetMyCollectionTest(TestCase):
         request_dict = {"skey": "222",
                         "status": 1,
                         "page": 2}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(len(response_json['task_list']), 0)
@@ -2062,7 +2062,7 @@ class FeedbackTest(TestCase):
                         "detail": "反馈",
                         "pics": ""}
         user = User.objects.get(skey="222")
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         feedback_list = Feedback.objects.all()
@@ -2077,7 +2077,7 @@ class FeedbackTest(TestCase):
                         "detail": "反馈2",
                         "pics": ["/home/ubuntu/QingXian/media/picture/test.png"]}
         user = User.objects.get(skey="222")
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         feedback_list = Feedback.objects.all()
@@ -2093,12 +2093,12 @@ class FeedbackTest(TestCase):
         request_dict = {"skey": "2333",
                         "detail": "反馈",
                         "pics": ""}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
         # 测试无skey输入
         request_dict = {"detail": "反馈",
                         "pics": ""}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)

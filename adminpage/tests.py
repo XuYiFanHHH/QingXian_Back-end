@@ -16,7 +16,7 @@ class AdminLoginTest(TestCase):
     def test_proper_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
@@ -24,12 +24,12 @@ class AdminLoginTest(TestCase):
     def test_invalid_username_request(self):
         request_dict = {"username": "admi",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
         request_dict = {"password": "adminpass"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -37,12 +37,12 @@ class AdminLoginTest(TestCase):
     def test_invalid_password_request(self):
         request_dict = {"username": "admin",
                         "password": "admin"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
         request_dict = {"username": "admin"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -57,7 +57,7 @@ class AdminLogoutTest(TestCase):
     def test_proper_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
@@ -143,7 +143,7 @@ class GetAllTaskTest(TestCase):
     def test_goods_or_activity_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
@@ -152,7 +152,7 @@ class GetAllTaskTest(TestCase):
                         "category": "全部",
                         "keyword": "",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -184,7 +184,7 @@ class GetAllTaskTest(TestCase):
                         "category": "全部",
                         "keyword": "",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -210,7 +210,7 @@ class GetAllTaskTest(TestCase):
                         "category": "全部",
                         "keyword": "",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -219,7 +219,7 @@ class GetAllTaskTest(TestCase):
                         "category": "全部",
                         "keyword": "",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -227,7 +227,7 @@ class GetAllTaskTest(TestCase):
     def test_status_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         # status为0
@@ -236,7 +236,7 @@ class GetAllTaskTest(TestCase):
                         "category": "全部",
                         "keyword": "",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -250,7 +250,7 @@ class GetAllTaskTest(TestCase):
                         "category": "全部",
                         "keyword": "",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -265,7 +265,7 @@ class GetAllTaskTest(TestCase):
                         "category": "全部",
                         "keyword": "",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -279,7 +279,7 @@ class GetAllTaskTest(TestCase):
                         "category": "全部",
                         "keyword": "",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 0)
@@ -292,7 +292,7 @@ class GetAllTaskTest(TestCase):
                         "category": "全部",
                         "keyword": "",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 0)
@@ -304,7 +304,7 @@ class GetAllTaskTest(TestCase):
                         "category": "全部",
                         "keyword": "",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -319,7 +319,7 @@ class GetAllTaskTest(TestCase):
                         "category": "全部",
                         "keyword": "",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -328,7 +328,7 @@ class GetAllTaskTest(TestCase):
                         "category": "全部",
                         "keyword": "",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -336,7 +336,7 @@ class GetAllTaskTest(TestCase):
     def test_category_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         # category有效
@@ -345,7 +345,7 @@ class GetAllTaskTest(TestCase):
                         "category": "学习",
                         "keyword": "",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -362,7 +362,7 @@ class GetAllTaskTest(TestCase):
                         "category": "学习",
                         "keyword": "",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 0)
@@ -373,7 +373,7 @@ class GetAllTaskTest(TestCase):
     def test_keyword_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         # keyword
@@ -382,7 +382,7 @@ class GetAllTaskTest(TestCase):
                         "category": "全部",
                         "keyword": "电脑",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -399,7 +399,7 @@ class GetAllTaskTest(TestCase):
                         "category": "休闲娱乐",
                         "keyword": "电脑",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -414,7 +414,7 @@ class GetAllTaskTest(TestCase):
                         "category": "休闲娱乐",
                         "keyword": "失物",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 0)
@@ -426,7 +426,7 @@ class GetAllTaskTest(TestCase):
                         "category": "全部",
                         "keyword": "电影",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 0)
@@ -437,7 +437,7 @@ class GetAllTaskTest(TestCase):
     def test_invalid_page_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
@@ -446,7 +446,7 @@ class GetAllTaskTest(TestCase):
                         "category": "全部",
                         "keyword": "",
                         "page": 0}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -458,7 +458,7 @@ class GetAllTaskTest(TestCase):
                         "category": "全部",
                         "keyword": "",
                         "page": 2}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -472,7 +472,7 @@ class GetAllTaskTest(TestCase):
                         "category": "全部",
                         "keyword": "",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -552,7 +552,7 @@ class GetTaskDetailTest(TestCase):
     def test_different_task_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
@@ -562,7 +562,7 @@ class GetTaskDetailTest(TestCase):
         task4 = Task.objects.get(label="失物招领")
 
         request_dict = {"task_id": task1.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         goods_or_activity = response_json['goods_or_activity']
@@ -595,7 +595,7 @@ class GetTaskDetailTest(TestCase):
         pic = pics[0]
 
         request_dict = {"task_id": task2.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json['price'], "面议")
@@ -607,14 +607,14 @@ class GetTaskDetailTest(TestCase):
                               "/home/ubuntu/QingXian/media/picture/test.png")
 
         request_dict = {"task_id": task3.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json['price'], "不高于59元/场")
         self.assertEqual(response_json["status"], "已下架")
 
         request_dict = {"task_id": task4.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json['price'], "")
@@ -623,12 +623,12 @@ class GetTaskDetailTest(TestCase):
     def test_invalid_task_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
         request_dict = {"task_id": 100}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -637,7 +637,7 @@ class GetTaskDetailTest(TestCase):
         task1 = Task.objects.get(label="出售")
 
         request_dict = {"task_id": task1.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -687,7 +687,7 @@ class GetCommentsTest(TestCase):
     def test_proper_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
@@ -695,7 +695,7 @@ class GetCommentsTest(TestCase):
 
         request_dict = {"task_id": task1.id,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -713,13 +713,13 @@ class GetCommentsTest(TestCase):
     def test_invalid_task_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
         request_dict = {"task_id": 100,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 0)
@@ -730,7 +730,7 @@ class GetCommentsTest(TestCase):
     def test_invalid_page_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
@@ -738,7 +738,7 @@ class GetCommentsTest(TestCase):
 
         request_dict = {"task_id": task1.id,
                         "page": 0}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -747,7 +747,7 @@ class GetCommentsTest(TestCase):
 
         request_dict = {"task_id": task1.id,
                         "page": 2}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -760,7 +760,7 @@ class GetCommentsTest(TestCase):
 
         request_dict = {"task_id": task1.id,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -806,7 +806,7 @@ class TaskCheckTest(TestCase):
     def test_valid_agree_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
@@ -816,7 +816,7 @@ class TaskCheckTest(TestCase):
         # 未审核到上架
         request_dict = {"task_id": task1.id,
                         "agree": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(Notification.objects.all().count(), 1)
@@ -831,7 +831,7 @@ class TaskCheckTest(TestCase):
         request_dict = {"task_id": task2.id,
                         "agree": 0,
                         "undercarriage_reason": "不喜欢"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(Notification.objects.all().count(), 2)
@@ -841,7 +841,7 @@ class TaskCheckTest(TestCase):
         # 下架到上架
         request_dict = {"task_id": task2.id,
                         "agree": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(Notification.objects.all().count(), 3)
@@ -849,7 +849,7 @@ class TaskCheckTest(TestCase):
         request_dict = {"task_id": task1.id,
                         "agree": 0,
                         "undercarriage_reason": "不喜欢"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(Notification.objects.all().count(), 4)
@@ -858,7 +858,7 @@ class TaskCheckTest(TestCase):
     def test_invalid_agree_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
@@ -868,13 +868,13 @@ class TaskCheckTest(TestCase):
         request_dict = {"task_id": task1.id,
                         "agree": -1,
                         "undercarriage_reason": "不喜欢"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         self.assertEqual(response_json["error"], 1)
 
         request_dict = {"task_id": task1.id,
                         "agree": 2,
                         "undercarriage_reason": "不喜欢"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         self.assertEqual(response_json["error"], 1)
 
         # 上架到上架
@@ -882,7 +882,7 @@ class TaskCheckTest(TestCase):
         task1.save()
         request_dict = {"task_id": task1.id,
                         "agree": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         self.assertEqual(response_json["error"], 1)
 
         # 下架到下架
@@ -891,28 +891,28 @@ class TaskCheckTest(TestCase):
         request_dict = {"task_id": task2.id,
                         "agree": 0,
                         "undercarriage_reason": "不喜欢"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         self.assertEqual(response_json["error"], 1)
 
     # 测试无效task的请求
     def test_invalid_task_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
         # 无效task_id
         request_dict = {"task_id": 100,
                         "agree": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         self.assertEqual(response_json["error"], 1)
 
     # 测试无undercarriage_reason的请求
     def test_no_undercarriage_reason_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
@@ -920,7 +920,7 @@ class TaskCheckTest(TestCase):
         # 无undercarriage_reason
         request_dict = {"task_id": task1.id,
                         "agree": 0}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         self.assertEqual(response_json["error"], 1)
 
     # 测试未登录
@@ -929,7 +929,7 @@ class TaskCheckTest(TestCase):
 
         request_dict = {"task_id": task1.id,
                         "agree": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -963,7 +963,7 @@ class TaskChangeCategoryTest(TestCase):
     def test_proper_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
@@ -972,7 +972,7 @@ class TaskChangeCategoryTest(TestCase):
 
         request_dict = {"task_id": task1.id,
                         "category": "其它"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(Notification.objects.all().count(), 1)
@@ -988,28 +988,28 @@ class TaskChangeCategoryTest(TestCase):
     def test_invalid_task_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
         # 无效task_id
         request_dict = {"task_id": 100,
                         "category": "其它"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         self.assertEqual(response_json["error"], 1)
 
     # 测试无undercarriage_reason的请求
     def test_no_undercarriage_reason_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
         task1 = Task.objects.get(label="出售")
         # 无undercarriage_reason
         request_dict = {"task_id": task1.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         self.assertEqual(response_json["error"], 1)
 
     # 测试未登录
@@ -1018,7 +1018,7 @@ class TaskChangeCategoryTest(TestCase):
 
         request_dict = {"task_id": task1.id,
                         "category": "其它"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1063,7 +1063,7 @@ class DeleteCommentTest(TestCase):
     def test_proper_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
@@ -1073,7 +1073,7 @@ class DeleteCommentTest(TestCase):
 
         request_dict = {"comment_id": comment.id,
                         "reason": "不合适"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(Notification.objects.all().count(), 1)
@@ -1089,28 +1089,28 @@ class DeleteCommentTest(TestCase):
     def test_invalid_comment_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
         # 无效comment_id
         request_dict = {"comment_id": 100,
                         "reason": "不合适"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         self.assertEqual(response_json["error"], 1)
 
     # 测试无reason的请求
     def test_no_undercarriage_reason_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
         # 无reason
         comment = Comment.objects.get(detail="我想买！")
         request_dict = {"comment_id": comment.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         self.assertEqual(response_json["error"], 1)
 
     # 测试未登录
@@ -1120,7 +1120,7 @@ class DeleteCommentTest(TestCase):
         comment = Comment.objects.get(detail="我想买！")
         request_dict = {"comment_id": comment.id,
                         "reason": "不合适"}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1167,7 +1167,7 @@ class GetUserListTest(TestCase):
     def test_proper_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
@@ -1175,7 +1175,7 @@ class GetUserListTest(TestCase):
         request_dict = {"user_id": -1,
                         "keyword": "",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -1200,7 +1200,7 @@ class GetUserListTest(TestCase):
         request_dict = {"user_id": -1,
                         "keyword": "1",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -1214,7 +1214,7 @@ class GetUserListTest(TestCase):
         request_dict = {"user_id": user.id,
                         "keyword": "哈哈",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -1227,7 +1227,7 @@ class GetUserListTest(TestCase):
     def test_invalid_keyword_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
@@ -1235,7 +1235,7 @@ class GetUserListTest(TestCase):
         request_dict = {"user_id": -1,
                         "keyword": "3",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 0)
@@ -1246,21 +1246,21 @@ class GetUserListTest(TestCase):
     def test_invalid_userid_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
         request_dict = {"user_id": 0,
                         "keyword": "",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
         request_dict = {"user_id": 10,
                         "keyword": "",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1268,14 +1268,14 @@ class GetUserListTest(TestCase):
     def test_invalid_page_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
         request_dict = {"user_id": -1,
                         "keyword": "",
                         "page": 2}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -1285,7 +1285,7 @@ class GetUserListTest(TestCase):
         request_dict = {"user_id": -1,
                         "keyword": "",
                         "page": 0}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -1297,7 +1297,7 @@ class GetUserListTest(TestCase):
         request_dict = {"user_id": -1,
                         "keyword": "",
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1344,13 +1344,13 @@ class GetUserDetailTest(TestCase):
     def test_proper_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
         user = WechatUser.objects.get(nickname="1")
         request_dict = {"user_id": user.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         user1 = response_json
@@ -1366,7 +1366,7 @@ class GetUserDetailTest(TestCase):
 
         user = WechatUser.objects.get(nickname="2")
         request_dict = {"user_id": user.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         user2 = response_json
@@ -1377,12 +1377,12 @@ class GetUserDetailTest(TestCase):
     def test_proper_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
         request_dict = {"user_id": -1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1390,7 +1390,7 @@ class GetUserDetailTest(TestCase):
     def test_no_login_request(self):
         user = WechatUser.objects.get(nickname="2")
         request_dict = {"user_id": user.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1466,7 +1466,7 @@ class GetMyAllTaskTest(TestCase):
     def test_proper_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         user1 = WechatUser.objects.get(nickname="1")
@@ -1474,7 +1474,7 @@ class GetMyAllTaskTest(TestCase):
 
         request_dict = {"user_id": user1.id,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -1508,7 +1508,7 @@ class GetMyAllTaskTest(TestCase):
         # 没有发过任务的
         request_dict = {"user_id": user2.id,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 0)
@@ -1519,13 +1519,13 @@ class GetMyAllTaskTest(TestCase):
     def test_proper_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
         request_dict = {"user_id": -1,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1534,7 +1534,7 @@ class GetMyAllTaskTest(TestCase):
         user = WechatUser.objects.get(nickname="1")
         request_dict = {"user_id": user.id,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1584,7 +1584,7 @@ class GetHistoryCommentsTest(TestCase):
     def test_proper_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
@@ -1593,7 +1593,7 @@ class GetHistoryCommentsTest(TestCase):
         user2 = WechatUser.objects.get(open_id="222")
         request_dict = {"user_id": user2.id,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -1610,7 +1610,7 @@ class GetHistoryCommentsTest(TestCase):
         # 未发过评论的用户
         request_dict = {"user_id": user1.id,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 0)
@@ -1621,13 +1621,13 @@ class GetHistoryCommentsTest(TestCase):
     def test_invalid_user_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
         request_dict = {"task_id": 100,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1635,14 +1635,14 @@ class GetHistoryCommentsTest(TestCase):
     def test_invalid_page_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
         user2 = WechatUser.objects.get(open_id="222")
         request_dict = {"user_id": user2.id,
                         "page": 0}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -1651,7 +1651,7 @@ class GetHistoryCommentsTest(TestCase):
 
         request_dict = {"user_id": user2.id,
                         "page": 2}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["pages"], 1)
@@ -1663,7 +1663,7 @@ class GetHistoryCommentsTest(TestCase):
         user2 = WechatUser.objects.get(open_id="222")
         request_dict = {"user_id": user2.id,
                         "page": 1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1696,7 +1696,7 @@ class SendMsgTest(TestCase):
     def test_proper_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
@@ -1706,7 +1706,7 @@ class SendMsgTest(TestCase):
         request_dict = {"user_id": user1.id,
                         "detail": "不好",
                         "relevant_task_id": task.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
@@ -1722,7 +1722,7 @@ class SendMsgTest(TestCase):
         request_dict = {"user_id": user1.id,
                         "detail": "不好",
                         "relevant_task_id": -1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(Notification.objects.all().count(), 2)
@@ -1733,7 +1733,7 @@ class SendMsgTest(TestCase):
     def test_invalid_request(self):
         request_dict = {"username": "admin",
                         "password": "adminpass"}
-        response_json = json.loads(self.client.post("/adminpage/login", request_dict).content.decode())
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
 
@@ -1741,7 +1741,7 @@ class SendMsgTest(TestCase):
         request_dict = {"user_id": 0,
                         "detail": "不好",
                         "relevant_task_id": -1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1750,7 +1750,7 @@ class SendMsgTest(TestCase):
         request_dict = {"user_id": user.id,
                         "detail": "不好",
                         "relevant_task_id": 0}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
@@ -1760,6 +1760,6 @@ class SendMsgTest(TestCase):
         request_dict = {"user_id": user.id,
                         "detail": "不好",
                         "relevant_task_id": -1}
-        response_json = json.loads(self.client.post(self.request_url, request_dict).content.decode())
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
