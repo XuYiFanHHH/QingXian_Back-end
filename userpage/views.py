@@ -496,7 +496,6 @@ def get_tasks(request):
             else:
                 final_list = task_list
 
-
         total_num = len(final_list)
         start_num = (page_id - 1) * 10
         if start_num <= total_num and start_num >= 0:
@@ -598,6 +597,7 @@ def get_task_detail(request):
         user_id = user.id
         task = Task.objects.get(id=task_id)
         response["task_id"] = task.id
+        response["label"] = task.label
         response["title"] = task.title
         response["detail"] = task.detail
         if task.goods_or_activity == 0:
@@ -632,10 +632,11 @@ def get_task_detail(request):
             pic_url = '%s/%s' % (PIC_SAVE_ROOT,"default_image.png")
             pic_url_list.append(str(SITE_DOMAIN).rstrip("/") + "/showimage" + pic_url)
         response["pics"] = pic_url_list
-
+        response["collect_num"] = Collection.objects.filter(task_id=task_id).count()
         # 相关评论
         comment_list = []
         comments = Comment.objects.filter(task_id=task_id)
+        response["comment_num"] = comments.count()
         for comment in comments:
             return_comment = {}
             return_comment["reviewer_id"] = comment.reviewer_id
@@ -679,11 +680,15 @@ def get_publisher_contact(request):
         task = Task.objects.get(id=request.POST["task_id"])
         publisher = User.objects.get(id=task.user_id)
         if user.contact_info == "":
+            response["user_contact"] = publisher.contact_info
+            response["notice"] = task.contact_msg
             response['msg'] = "请先填写您自己的联系方式！"
-            response['error'] = 2
+            response['error'] = 0
+            response['self_contact_complete'] = 0
         else:
             if task.user_id == user.id:
                 raise LogicError("你想获取自己的联系方式？？")
+            response['self_contact_complete'] = 1
             response["user_contact"] = publisher.contact_info
             response["notice"] = task.contact_msg
             response['msg'] = "success"

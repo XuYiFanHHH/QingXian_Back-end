@@ -1230,6 +1230,11 @@ class GetPublisherContactTest(TestCase):
                             nickname="2",
                             contact_info="18800000000",
                             avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
+        User.objects.create(open_id="333",
+                            skey="333",
+                            nickname="3",
+                            contact_info="",
+                            avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
         user = User.objects.get(open_id="654321")
         Task.objects.create(user_id=user.id,
                             user_credit=100,
@@ -1247,7 +1252,7 @@ class GetPublisherContactTest(TestCase):
     # 测试正常输入
     def test_proper_request(self):
         task = Task.objects.get(label="求购")
-        # 商品 有评论 有图片 收藏
+        # 已经填写联系方式
         request_dict = {"skey": "222",
                         "task_id": task.id}
         response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
@@ -1255,12 +1260,21 @@ class GetPublisherContactTest(TestCase):
         self.assertEqual(error, 0)
         self.assertEqual(response_json["user_contact"], "18800123333")
         self.assertEqual(response_json["notice"], "请加我的微信")
+        self.assertEqual(response_json["self_contact_complete"], 1)
         self.assertEqual(Notification.objects.all().count(), 1)
         notification = Notification.objects.all()[0]
         self.assertEqual(notification.task_id, task.id)
         self.assertEqual(notification.category, 1)
         self.assertEqual(notification.title, "2 获取了你的联系方式")
         self.assertEqual(notification.user_check, 0)
+
+        # 未填写联系方式
+        request_dict = {"skey": "333",
+                        "task_id": task.id}
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        self.assertEqual(response_json["self_contact_complete"], 0)
 
     # 测试不存在的task_id
     def test_invalid_taskid_request(self):
