@@ -220,6 +220,8 @@ def get_all_task(request):
             task["pic"] = pic_url
             task["collect_num"] = Collection.objects.filter(task_id=item.id).count()
             task["comment_num"] = Comment.objects.filter(task_id=item.id).count()
+            un_time = time.mktime(item.submit_time.timetuple())
+            task["submit_time_count"] = un_time
 
             if item.goods_or_activity == 0:
                 price = int(item.price_for_goods)
@@ -291,6 +293,8 @@ def get_all_collection(request):
             task["pic"] = pic_url
             task["collect_num"] = Collection.objects.filter(task_id=item.id).count()
             task["comment_num"] = Comment.objects.filter(task_id=item.id).count()
+            un_time = time.mktime(item.submit_time.timetuple())
+            task["submit_time_count"] = un_time
 
             if item.goods_or_activity == 0:
                 price = int(item.price_for_goods)
@@ -367,6 +371,30 @@ def add_new_task(request):
                               feedback_id=-1
                               )
             picture.save()
+        response['msg'] = "success"
+        response['error'] = 0
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+
+# 任务下架
+@require_http_methods(["POST"])
+def delete_task(request):
+    response = {}
+    try:
+        skey = request.POST["skey"]
+        user = User.objects.get(skey=skey)
+        task_id = request.POST["task_id"]
+        task = Task.objects.get(id=task_id)
+        if task.user_id == user.id and task.status != 2:
+            task.status = 2
+            task.save()
+        else:
+            raise InputError("It is not your task or the task has already undercarriaged")
         response['msg'] = "success"
         response['error'] = 0
     except Exception as e:
@@ -678,6 +706,7 @@ def get_publisher_contact(request):
         skey = request.POST["skey"]
         user = User.objects.get(skey=skey)
         task = Task.objects.get(id=request.POST["task_id"])
+        user_seen = int(request.POST["complete"])
         publisher = User.objects.get(id=task.user_id)
         if user.contact_info == "":
             response["user_contact"] = publisher.contact_info
@@ -686,23 +715,23 @@ def get_publisher_contact(request):
             response['error'] = 0
             response['self_contact_complete'] = 0
         else:
-            if task.user_id == user.id:
-                raise LogicError("你想获取自己的联系方式？？")
             response['self_contact_complete'] = 1
             response["user_contact"] = publisher.contact_info
             response["notice"] = task.contact_msg
             response['msg'] = "success"
             response['error'] = 0
-            title = user.nickname + " 获取了你的联系方式"
-            notification = Notification(receiver_id=task.user_id,
-                                        category=1,
-                                        comment_id=-1,
-                                        relevant_user_id=user.id,
-                                        task_id=task.id,
-                                        title=title,
-                                        detail="",
-                                        user_check=0)
-            notification.save()
+
+            if task.user_id != user.id and user_seen == 1:
+                title = user.nickname + " 获取了你的联系方式"
+                notification = Notification(receiver_id=task.user_id,
+                                            category=1,
+                                            comment_id=-1,
+                                            relevant_user_id=user.id,
+                                            task_id=task.id,
+                                            title=title,
+                                            detail="",
+                                            user_check=0)
+                notification.save()
     except Exception as e:
         response['msg'] = str(e)
         response['error'] = 1

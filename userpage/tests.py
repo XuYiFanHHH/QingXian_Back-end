@@ -1252,15 +1252,34 @@ class GetPublisherContactTest(TestCase):
     # 测试正常输入
     def test_proper_request(self):
         task = Task.objects.get(label="求购")
-        # 已经填写联系方式
+        # 已经填写联系方式, 用户未看到
         request_dict = {"skey": "222",
-                        "task_id": task.id}
+                        "task_id": task.id,
+                        "complete": 0}
         response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
         self.assertEqual(response_json["user_contact"], "18800123333")
         self.assertEqual(response_json["notice"], "请加我的微信")
         self.assertEqual(response_json["self_contact_complete"], 1)
+        self.assertEqual(Notification.objects.all().count(), 0)
+
+        # 是自己发布的任务,不发通知
+        request_dict = {"skey": "654321",
+                        "task_id": task.id,
+                        "complete": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        self.assertEqual(Notification.objects.all().count(), 0)
+
+        # 已经填写联系方式, 用户看到，发送通知
+        request_dict = {"skey": "222",
+                        "task_id": task.id,
+                        "complete": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
         self.assertEqual(Notification.objects.all().count(), 1)
         notification = Notification.objects.all()[0]
         self.assertEqual(notification.task_id, task.id)
@@ -1270,7 +1289,8 @@ class GetPublisherContactTest(TestCase):
 
         # 未填写联系方式
         request_dict = {"skey": "333",
-                        "task_id": task.id}
+                        "task_id": task.id,
+                        "complete": 0}
         response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 0)
@@ -1279,7 +1299,8 @@ class GetPublisherContactTest(TestCase):
     # 测试不存在的task_id
     def test_invalid_taskid_request(self):
         request_dict = {"skey": "222",
-                        "task_id": 100}
+                        "task_id": 100,
+                        "complete": 0}
         response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
@@ -1288,19 +1309,14 @@ class GetPublisherContactTest(TestCase):
     def test_invalid_skey_request(self):
         task1 = Task.objects.get(label="求购")
         request_dict = {"skey": "2333",
-                        "task_id": task1.id}
+                        "task_id": task1.id,
+                        "complete": 0}
         response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
 
-        # 是自己发布的任务
-        request_dict = {"skey": "654321",
-                        "task_id": task1.id}
-        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
-        error = response_json['error']
-        self.assertEqual(error, 1)
-
-        request_dict = {"task_id": task1.id}
+        request_dict = {"task_id": task1.id,
+                        "complete": 0}
         response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)

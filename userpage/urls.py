@@ -12,6 +12,7 @@ urlpatterns = [
     path('user/feedback', get_user_feedback),
     path('user/my_task', get_all_task),
     path('user/my_collection', get_all_collection),
+    path('user/undercarriage', delete_task),
 
     path('create_task', add_new_task),
     path('image/upload', upload_picture),
