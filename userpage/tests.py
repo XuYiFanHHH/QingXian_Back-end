@@ -615,8 +615,6 @@ class GetTaskTest(TestCase):
         self.assertEqual(task1["user_avatar"],user.avatar_url)
         self.assertEqual(len(task1["pics"]), 0)
         self.assertEqual(task1["collect_num"], 0)
-        self.assertEqual(task1["comment_num"], 0)
-        self.assertEqual(len(task1["comment_list"]), 0)
         self.assertEqual(task1["hasCollect"], 0)
 
         self.assertEqual(task2["pic"],
@@ -627,12 +625,6 @@ class GetTaskTest(TestCase):
                          "https://763850.iterator-traits.com/showimage" +
                          "/home/ubuntu/QingXian/media/picture/test.png")
         self.assertEqual(task2["collect_num"], 1)
-        self.assertEqual(task2["comment_num"], 1)
-        self.assertEqual(len(task2["comment_list"]), 1)
-        comment = task2["comment_list"][0]
-        self.assertEqual(comment["reviewer_nickname"], "2")
-        self.assertEqual(comment["receiver_nickname"], "1")
-        self.assertEqual(comment["detail"], "我有！")
         self.assertEqual(task2["hasCollect"], 1)
         self.assertEqual(task2["price"], "面议")
         self.assertGreaterEqual(int(task1["submit_time_count"]), int(task2["submit_time_count"]))

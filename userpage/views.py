@@ -577,20 +577,6 @@ def get_tasks(request):
 
             task["collect_num"] = Collection.objects.filter(task_id=item.id).count()
             task["comment_num"] = Comment.objects.filter(task_id=item.id).count()
-            # 相关评论
-            comment_list = []
-            comments = Comment.objects.filter(task_id=item.id)
-            for comment in comments:
-                return_comment = {}
-                return_comment["reviewer_id"] = comment.reviewer_id
-                return_comment["reviewer_nickname"] = User.objects.get(id=comment.reviewer_id).nickname
-                return_comment["receiver_id"] = comment.receiver_id
-                if comment.receiver_id != -1:
-                    return_comment["receiver_nickname"] = User.objects.get(id=comment.receiver_id).nickname
-                return_comment["detail"] = comment.detail
-                return_comment["time"] = str(comment.release_time.strftime('%Y-%m-%d %H:%M'))
-                comment_list.append(return_comment)
-            task["comment_list"] = comment_list
 
             select_result = Collection.objects.filter(user_id=user_id, task_id=item.id)
             if len(select_result) > 0:
@@ -866,8 +852,14 @@ def get_notifications(request):
             if len(pic_list) > 0:
                 pic_url = str(pic_list[0].picture_url)
             if len(pic_list) == 0 or pic_url == "":
-                pic_url = ""
+                pic_url = str(SITE_DOMAIN).rstrip("/") + "/showimage" + '%s/%s' % (PIC_SAVE_ROOT, "default_image.png")
             message["task_image_url"] = pic_url
+            select_result = Collection.objects.filter(user_id=user.id, task_id=task.id)
+            if len(select_result) > 0:
+                message["hasCollect"] = 1
+            else:
+                message["hasCollect"] = 0
+            message["goods_or_activity"] = task.goods_or_activity
             # 计算提醒发送时间
             release_time = str(notice.release_time.strftime('%Y-%m-%d %H:%M'))
             un_time = time.mktime(notice.release_time.timetuple())
