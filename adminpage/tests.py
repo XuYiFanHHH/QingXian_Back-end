@@ -1763,3 +1763,182 @@ class SendMsgTest(TestCase):
         response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
         error = response_json['error']
         self.assertEqual(error, 1)
+
+
+# 获取用户反馈
+class GetUserFeedback(TestCase):
+    def setUp(self):
+        User.objects.create_superuser(username="admin", email="784824453@qq.com", password="adminpass")
+
+        user = WechatUser.objects.create(open_id="111",
+                                         skey="111",
+                                         nickname="1",
+                                         contact_info="18800123333",
+                                         avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image1.png")
+
+        feedback1 = Feedback.objects.create(user_id=user.id,
+                                            admin_check=0,
+                                            detail="页面好丑！"
+                                            )
+
+        Feedback.objects.create(user_id=user.id,
+                                admin_check=1,
+                                detail="页面好看！"
+                                )
+
+        Picture.objects.create(picture_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/test.png",
+                               task_id=-1,
+                               feedback_id=feedback1.id)
+        self.request_url = "/adminpage/user/get_feedback"
+
+    # 测试正常参数
+    def test_proper_request(self):
+        request_dict = {"username": "admin",
+                        "password": "adminpass"}
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+
+        request_dict = {"type": -1,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        self.assertEqual(response_json["pages"], 1)
+        feedback_list = response_json["feedback_list"]
+        self.assertEqual(len(feedback_list), 2)
+        feedback1 = feedback_list[0]
+        feedback2 = feedback_list[1]
+        self.assertEqual(feedback1["detail"], "页面好丑！")
+        self.assertEqual(feedback1["user_contact"], "18800123333")
+        self.assertEqual(len(feedback1["pics"]), 1)
+
+        self.assertEqual(feedback2["detail"], "页面好看！")
+        self.assertEqual(feedback2["user_contact"], "18800123333")
+        self.assertEqual(len(feedback2["pics"]), 0)
+
+        request_dict = {"type": 0,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        self.assertEqual(response_json["pages"], 1)
+        feedback_list = response_json["feedback_list"]
+        self.assertEqual(len(feedback_list), 1)
+        feedback1 = feedback_list[0]
+        self.assertEqual(feedback1["detail"], "页面好丑！")
+
+        request_dict = {"type": 1,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        self.assertEqual(response_json["pages"], 1)
+        feedback_list = response_json["feedback_list"]
+        self.assertEqual(len(feedback_list), 1)
+        feedback1 = feedback_list[0]
+        self.assertEqual(feedback1["detail"], "页面好看！")
+
+        request_dict = {"type": -1,
+                        "page": 2}
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        self.assertEqual(response_json["pages"], 1)
+        feedback_list = response_json["feedback_list"]
+        self.assertEqual(len(feedback_list), 0)
+
+        request_dict = {"type": -1,
+                        "page": 0}
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        self.assertEqual(response_json["pages"], 1)
+        feedback_list = response_json["feedback_list"]
+        self.assertEqual(len(feedback_list), 0)
+
+    # 测试无效请求
+    def test_invalid_request(self):
+        request_dict = {"username": "admin",
+                        "password": "adminpass"}
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+
+        # 测试无效type
+        request_dict = {"type": -2,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 1)
+
+        request_dict = {"type": 3,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 1)
+
+    # 测试未登录
+    def test_no_login_request(self):
+        request_dict = {"type": -1,
+                        "page": 1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 1)
+
+
+# 管理员已经查看反馈
+class CheckFeedback(TestCase):
+    def setUp(self):
+        User.objects.create_superuser(username="admin", email="784824453@qq.com", password="adminpass")
+
+        user = WechatUser.objects.create(open_id="111",
+                                         skey="111",
+                                         nickname="1",
+                                         contact_info="18800123333",
+                                         avatar_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/default_image1.png")
+
+        Feedback.objects.create(user_id=user.id,
+                                admin_check=0,
+                                detail="页面好丑！"
+                                )
+        self.request_url = "/adminpage/user/feedback_check"
+
+    # 测试正常参数
+    def test_proper_request(self):
+        request_dict = {"username": "admin",
+                        "password": "adminpass"}
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+
+        feedback1 = Feedback.objects.get(detail="页面好丑！")
+
+        request_dict = {"feedback_id": feedback1.id}
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+        feedback1 = Feedback.objects.get(detail="页面好丑！")
+        self.assertEqual(feedback1.admin_check, 1)
+
+    # 测试无效请求
+    def test_invalid_request(self):
+        request_dict = {"username": "admin",
+                        "password": "adminpass"}
+        response_json = json.loads(self.client.post("/adminpage/login", request_dict, secure=True).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 0)
+
+        # id
+        request_dict = {"feedback_id": -1}
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 1)
+
+    # 测试未登录
+    def test_no_login_request(self):
+        feedback1 = Feedback.objects.get(detail="页面好丑！")
+        request_dict = {"feedback_id": feedback1.id}
+        response_json = json.loads(self.client.post(self.request_url, request_dict, secure=True).content.decode())
+        error = response_json['error']
+        self.assertEqual(error, 1)

@@ -611,6 +611,7 @@ def get_task_detail(request):
         user_id = user.id
         task = Task.objects.get(id=task_id)
         response["task_id"] = task.id
+        response["status"] = task.status
         response["label"] = task.label
         response["title"] = task.title
         response["detail"] = task.detail
@@ -655,11 +656,13 @@ def get_task_detail(request):
             return_comment = {}
             return_comment["reviewer_id"] = comment.reviewer_id
             return_comment["reviewer_nickname"] = User.objects.get(id=comment.reviewer_id).nickname
+            return_comment["avatar"] = User.objects.get(id=comment.reviewer_id).avatar_url
             return_comment["receiver_id"] = comment.receiver_id
             if comment.receiver_id != -1:
                 return_comment["receiver_nickname"] = User.objects.get(id=comment.receiver_id).nickname
             return_comment["detail"] = comment.detail
-            return_comment["time"] = str(comment.release_time.strftime('%Y-%m-%d %H:%M'))
+            un_time = time.mktime(comment.release_time.timetuple())
+            return_comment["time"] = un_time
             comment_list.append(return_comment)
         
         response["comment_list"] = comment_list

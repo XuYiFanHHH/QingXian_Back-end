@@ -15,5 +15,7 @@ urlpatterns = [
     path('user/get_detail', get_user_detail),
     path('user/history_task', get_history_tasks),
     path('user/history_comment', get_history_comments),
-    path('user/send_msg', send_message)
+    path('user/send_msg', send_message),
+    path('user/get_feedback', get_user_feedback),
+    path('user/feedback_check', admin_check_feedback)
 ]

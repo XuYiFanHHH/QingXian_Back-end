@@ -66,6 +66,8 @@ class Collection(models.Model):
 class Feedback(models.Model):
     user_id = models.IntegerField()
     detail = models.TextField()
+    # 管理员是否已经查看过
+    admin_check = models.IntegerField(default=0)
     release_time = models.DateTimeField(default=timezone.now)
     objects = models.Manager()
 

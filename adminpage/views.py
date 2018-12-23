@@ -575,7 +575,7 @@ def get_history_comments(request):
                 end_num = start_num + 10
                 if end_num > total_num:
                     end_num = total_num
-                    comment_list = comment_list[start_num:end_num]
+                comment_list = comment_list[start_num:end_num]
             else:
                 comment_list = []
             return_list = []
@@ -583,6 +583,7 @@ def get_history_comments(request):
                 comment_info = {}
                 comment_info["comment_id"] = item.id
                 comment_info["task_id"] = item.task_id
+                comment_info["task_title"] = Task.objects.get(id=item.task_id).title
                 comment_info["receiver_id"] = item.receiver_id
                 if User.objects.filter(id=item.receiver_id).count() > 0:
                     comment_info["receiver_nickname"] = User.objects.get(id=item.receiver_id).nickname
@@ -591,6 +592,84 @@ def get_history_comments(request):
                 return_list.append(comment_info)
             response["comment_list"] = return_list
             response["pages"] = pages
+            response['msg'] = "success!"
+            response['error'] = 0
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+
+# 查看用户反馈
+@require_http_methods(["POST"])
+def get_user_feedback(request):
+    response = {}
+    try:
+        if not request.user.is_authenticated:
+            raise ValidateError("admin-user not login!")
+        else:
+            type = int(request.POST["type"])
+            page_id = int(request.POST["page"])
+
+            if type != -1 and type != 0 and type != 1:
+                raise InputError("type input should be -1 or 0 or 1")
+            feedback_list = Feedback.objects.all()
+            if type != -1:
+                feedback_list = feedback_list.filter(admin_check=type)
+            total_num = len(feedback_list)
+            pages = math.ceil(total_num / 10)
+            start_num = (page_id - 1) * 10
+            if start_num <= total_num and start_num >= 0:
+                end_num = start_num + 10
+                if end_num > total_num:
+                    end_num = total_num
+                    feedback_list = feedback_list[start_num:end_num]
+            else:
+                feedback_list = []
+            return_list = []
+            for feedback in feedback_list:
+                info = {}
+                info["feedback_id"] = feedback.id
+                info["detail"] = feedback.detail
+                info["user_id"] = feedback.user_id
+                info["user_contact"] = User.objects.get(id=feedback.user_id).contact_info
+                info["time"] = str(feedback.release_time.strftime('%Y-%m-%d %H:%M'))
+                # 相关图片
+                pic_list = Picture.objects.filter(feedback_id=feedback.id)
+                pic_url_list = []
+                if len(pic_list) > 0:
+                    for pic in pic_list:
+                        pic_url = pic.picture_url
+                        if pic_url != "":
+                            pic_url_list.append(pic_url)
+                info["pics"] = pic_url_list
+                return_list.append(info)
+            response["pages"] = pages
+            response["feedback_list"] = return_list
+            response['msg'] = "success!"
+            response['error'] = 0
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error'] = 1
+    finally:
+        response = JsonResponse(response)
+        return response
+
+
+# 反馈已查看
+@require_http_methods(["POST"])
+def admin_check_feedback(request):
+    response = {}
+    try:
+        if not request.user.is_authenticated:
+            raise ValidateError("admin-user not login!")
+        else:
+            feedback_id = int(request.POST["feedback_id"])
+            feedback = Feedback.objects.get(id=feedback_id)
+            feedback.admin_check = 1
+            feedback.save()
             response['msg'] = "success!"
             response['error'] = 0
     except Exception as e:
