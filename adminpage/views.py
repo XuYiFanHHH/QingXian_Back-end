@@ -634,7 +634,9 @@ def get_user_feedback(request):
                 info["feedback_id"] = feedback.id
                 info["detail"] = feedback.detail
                 info["user_id"] = feedback.user_id
-                info["user_contact"] = User.objects.get(id=feedback.user_id).contact_info
+                user = User.objects.get(id=feedback.user_id)
+                info["user_contact"] = user.contact_info
+                info["nickname"] = user,nickname
                 info["time"] = str(feedback.release_time.strftime('%Y-%m-%d %H:%M'))
                 # 相关图片
                 pic_list = Picture.objects.filter(feedback_id=feedback.id)
