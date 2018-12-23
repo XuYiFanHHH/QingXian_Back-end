@@ -1555,7 +1555,7 @@ class GetNotificationsTest(TestCase):
         self.assertEqual(right, 1)
         avatar_url = "https://763850.iterator-traits.com/showimage/home/ubuntu/QingXian/media/picture/test.png"
         self.assertEqual(notice["user_avatar_url"],avatar_url)
-        self.assertEqual(notice["task_image_url"], "")
+        self.assertEqual(notice["task_image_url"], "https://763850.iterator-traits.com/showimage/home/ubuntu/QingXian/media/picture/default_image.png")
 
         Picture.objects.create(picture_url=str(SITE_DOMAIN).rstrip("/") + "/showimage/home/ubuntu/QingXian/media/picture/test.png",
                                task_id=task.id,
