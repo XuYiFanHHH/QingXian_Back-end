@@ -625,7 +625,7 @@ def get_user_feedback(request):
                 end_num = start_num + 10
                 if end_num > total_num:
                     end_num = total_num
-                    feedback_list = feedback_list[start_num:end_num]
+                feedback_list = feedback_list[start_num:end_num]
             else:
                 feedback_list = []
             return_list = []
